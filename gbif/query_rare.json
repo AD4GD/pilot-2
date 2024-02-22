@@ -1,0 +1,42 @@
+{   
+    "creator": "creator",
+    "notification_address": [
+    "creator@gmail.com"
+    ],
+    "sendNotification": true,
+    "format": "SIMPLE_CSV",
+    "predicate": {
+    "type": "and",
+    "predicates": [
+      {
+        "type": "equals",
+        "key": "COUNTRY",
+        "value": "ES",
+        "matchCase": false
+      },
+      {
+        "type": "equals",
+        "key": "TAXON_KEY",
+        "value": "359",
+        "matchCase": false
+      },
+      {
+        "type": "and",
+        "predicates": [
+          {
+            "type": "greaterThanOrEquals",
+            "key": "YEAR",
+            "value": "1901",
+            "matchCase": false
+          },
+          {
+            "type": "lessThanOrEquals",
+            "key": "YEAR",
+            "value": "2024",
+            "matchCase": false
+          }
+        ]
+      }
+    ]  
+  }
+}
