@@ -1,0 +1,14 @@
+#To replace @query_rare.json with other data file names
+#To replace username and password by real ones
+
+curl --include --user username:password --header "Content-Type: application/json" --data @query_rare.json https://api.gbif.org/v1/occurrence/download/request
+
+# query_rare.json has been customized from here: https://www.gbif.org/occurrence/download
+
+#only simple_csv format makes sense:
+https://techdocs.gbif.org/en/data-use/api-downloads
+
+#to retrieve rare and endangered species in Spain
+#GBIF.org (16 February 2024) GBIF Occurrence Download https://doi.org/10.15468/dl.xcjp3k
+
+
