@@ -1,0 +1,820 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            1.491,
+                            42.477
+                        ],
+                        [
+                            1.463,
+                            42.478
+                        ],
+                        [
+                            1.444,
+                            42.495
+                        ],
+                        [
+                            1.469,
+                            42.51
+                        ],
+                        [
+                            1.465,
+                            42.516
+                        ],
+                        [
+                            1.477,
+                            42.524
+                        ],
+                        [
+                            1.522,
+                            42.53
+                        ],
+                        [
+                            1.524,
+                            42.519
+                        ],
+                        [
+                            1.537,
+                            42.512
+                        ],
+                        [
+                            1.498,
+                            42.492
+                        ],
+                        [
+                            1.49,
+                            42.482
+                        ],
+                        [
+                            1.491,
+                            42.477
+                        ]
+                    ]
+                ]
+            },
+            "properties": {
+                "id": 36064,
+                "name": "Vedat de ca\u00e7a d'Enclar",
+                "original_name": "Vedat de ca\u00e7a d'Enclar",
+                "wdpa_id": 36064,
+                "management_plan": "Under development\r ",
+                "is_green_list": false,
+                "iucn_category": {
+                    "id": 5,
+                    "name": "IV"
+                },
+                "designation": {
+                    "id": 193,
+                    "name": "Hunting Reserve",
+                    "jurisdiction": {
+                        "id": 1,
+                        "name": "National"
+                    }
+                },
+                "legal_status": {
+                    "id": 1,
+                    "name": "Designated"
+                },
+                "year": "2000-01-01"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            1.487,
+                            42.571
+                        ],
+                        [
+                            1.498,
+                            42.561
+                        ],
+                        [
+                            1.482,
+                            42.544
+                        ],
+                        [
+                            1.46,
+                            42.546
+                        ],
+                        [
+                            1.452,
+                            42.554
+                        ],
+                        [
+                            1.455,
+                            42.563
+                        ],
+                        [
+                            1.468,
+                            42.559
+                        ],
+                        [
+                            1.479,
+                            42.571
+                        ],
+                        [
+                            1.487,
+                            42.571
+                        ]
+                    ]
+                ]
+            },
+            "properties": {
+                "id": 36065,
+                "name": "Vedat de ca\u00e7a de Xixerella",
+                "original_name": "Vedat de ca\u00e7a de Xixerella",
+                "wdpa_id": 36065,
+                "management_plan": "Under development\r ",
+                "is_green_list": false,
+                "iucn_category": {
+                    "id": 5,
+                    "name": "IV"
+                },
+                "designation": {
+                    "id": 193,
+                    "name": "Hunting Reserve",
+                    "jurisdiction": {
+                        "id": 1,
+                        "name": "National"
+                    }
+                },
+                "legal_status": {
+                    "id": 1,
+                    "name": "Designated"
+                },
+                "year": "2000-01-01"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            1.552,
+                            42.626
+                        ],
+                        [
+                            1.564,
+                            42.626
+                        ],
+                        [
+                            1.581,
+                            42.637
+                        ],
+                        [
+                            1.604,
+                            42.625
+                        ],
+                        [
+                            1.608,
+                            42.614
+                        ],
+                        [
+                            1.577,
+                            42.602
+                        ],
+                        [
+                            1.555,
+                            42.616
+                        ],
+                        [
+                            1.549,
+                            42.624
+                        ],
+                        [
+                            1.552,
+                            42.626
+                        ]
+                    ]
+                ]
+            },
+            "properties": {
+                "id": 555549480,
+                "name": "Parc Natural de la Vall de Sorteny",
+                "original_name": "Parc Natural de la Vall de Sorteny",
+                "wdpa_id": 555549480,
+                "management_plan": "http://www.sorteny.ad/presentacio",
+                "is_green_list": false,
+                "iucn_category": {
+                    "id": 8,
+                    "name": "Not Reported"
+                },
+                "designation": {
+                    "id": 252,
+                    "name": "Ramsar Site, Wetland of International Importance",
+                    "jurisdiction": {
+                        "id": 2,
+                        "name": "International"
+                    }
+                },
+                "legal_status": {
+                    "id": 1,
+                    "name": "Designated"
+                },
+                "year": "2012-01-01"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            1.553,
+                            42.504
+                        ],
+                        [
+                            1.591,
+                            42.505
+                        ],
+                        [
+                            1.614,
+                            42.498
+                        ],
+                        [
+                            1.645,
+                            42.507
+                        ],
+                        [
+                            1.672,
+                            42.506
+                        ],
+                        [
+                            1.658,
+                            42.468
+                        ],
+                        [
+                            1.637,
+                            42.468
+                        ],
+                        [
+                            1.631,
+                            42.464
+                        ],
+                        [
+                            1.601,
+                            42.467
+                        ],
+                        [
+                            1.591,
+                            42.464
+                        ],
+                        [
+                            1.58,
+                            42.45
+                        ],
+                        [
+                            1.554,
+                            42.466
+                        ],
+                        [
+                            1.553,
+                            42.47
+                        ],
+                        [
+                            1.561,
+                            42.475
+                        ],
+                        [
+                            1.548,
+                            42.494
+                        ],
+                        [
+                            1.553,
+                            42.504
+                        ],
+                        [
+                            1.551,
+                            42.505
+                        ],
+                        [
+                            1.55,
+                            42.506
+                        ],
+                        [
+                            1.549,
+                            42.507
+                        ],
+                        [
+                            1.547,
+                            42.508
+                        ],
+                        [
+                            1.547,
+                            42.509
+                        ],
+                        [
+                            1.546,
+                            42.509
+                        ],
+                        [
+                            1.547,
+                            42.509
+                        ],
+                        [
+                            1.553,
+                            42.504
+                        ]
+                    ]
+                ]
+            },
+            "properties": {
+                "id": 555558369,
+                "name": "Vall del Madriu-Perafita-Claror",
+                "original_name": "Vall del Madriu-Perafita-Claror",
+                "wdpa_id": 555558369,
+                "management_plan": "https://www.bopa.ad/bopa/023080/Documents/742E6.pdf",
+                "is_green_list": false,
+                "iucn_category": {
+                    "id": 7,
+                    "name": "VI"
+                },
+                "designation": {
+                    "id": 252,
+                    "name": "Ramsar Site, Wetland of International Importance",
+                    "jurisdiction": {
+                        "id": 2,
+                        "name": "International"
+                    }
+                },
+                "legal_status": {
+                    "id": 1,
+                    "name": "Designated"
+                },
+                "year": "2013-01-01"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            1.502,
+                            42.572
+                        ],
+                        [
+                            1.496,
+                            42.568
+                        ],
+                        [
+                            1.486,
+                            42.573
+                        ],
+                        [
+                            1.484,
+                            42.577
+                        ],
+                        [
+                            1.49,
+                            42.581
+                        ],
+                        [
+                            1.485,
+                            42.585
+                        ],
+                        [
+                            1.483,
+                            42.58
+                        ],
+                        [
+                            1.469,
+                            42.587
+                        ],
+                        [
+                            1.465,
+                            42.587
+                        ],
+                        [
+                            1.476,
+                            42.58
+                        ],
+                        [
+                            1.445,
+                            42.572
+                        ],
+                        [
+                            1.434,
+                            42.574
+                        ],
+                        [
+                            1.427,
+                            42.583
+                        ],
+                        [
+                            1.441,
+                            42.594
+                        ],
+                        [
+                            1.443,
+                            42.604
+                        ],
+                        [
+                            1.457,
+                            42.602
+                        ],
+                        [
+                            1.47,
+                            42.606
+                        ],
+                        [
+                            1.494,
+                            42.598
+                        ],
+                        [
+                            1.502,
+                            42.572
+                        ]
+                    ]
+                ]
+            },
+            "properties": {
+                "id": 555592572,
+                "name": "Parc Natural Comunal de les Valls del Comapedrosa",
+                "original_name": "Parc Natural Comunal de les Valls del Comapedrosa",
+                "wdpa_id": 555592572,
+                "management_plan": "http://www.comapedrosa.ad/index.php?option=com_content&view=article&id=16&Itemid=290",
+                "is_green_list": false,
+                "iucn_category": {
+                    "id": 8,
+                    "name": "Not Reported"
+                },
+                "designation": {
+                    "id": 252,
+                    "name": "Ramsar Site, Wetland of International Importance",
+                    "jurisdiction": {
+                        "id": 2,
+                        "name": "International"
+                    }
+                },
+                "legal_status": {
+                    "id": 1,
+                    "name": "Designated"
+                },
+                "year": "2014-01-01"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            1.502,
+                            42.572
+                        ],
+                        [
+                            1.496,
+                            42.568
+                        ],
+                        [
+                            1.486,
+                            42.573
+                        ],
+                        [
+                            1.484,
+                            42.577
+                        ],
+                        [
+                            1.49,
+                            42.581
+                        ],
+                        [
+                            1.485,
+                            42.585
+                        ],
+                        [
+                            1.483,
+                            42.58
+                        ],
+                        [
+                            1.469,
+                            42.587
+                        ],
+                        [
+                            1.465,
+                            42.587
+                        ],
+                        [
+                            1.476,
+                            42.58
+                        ],
+                        [
+                            1.445,
+                            42.572
+                        ],
+                        [
+                            1.434,
+                            42.574
+                        ],
+                        [
+                            1.427,
+                            42.583
+                        ],
+                        [
+                            1.441,
+                            42.594
+                        ],
+                        [
+                            1.443,
+                            42.604
+                        ],
+                        [
+                            1.457,
+                            42.602
+                        ],
+                        [
+                            1.47,
+                            42.606
+                        ],
+                        [
+                            1.494,
+                            42.598
+                        ],
+                        [
+                            1.502,
+                            42.572
+                        ]
+                    ]
+                ]
+            },
+            "properties": {
+                "id": 555625666,
+                "name": "Parc Natural Comunal de les Valls del Comapedrosa",
+                "original_name": "Parc Natural Comunal de les Valls del Comapedrosa",
+                "wdpa_id": 555625666,
+                "management_plan": "http://www.comapedrosa.ad/index.php?option=com_content&view=article&id=16&Itemid=290",
+                "is_green_list": false,
+                "iucn_category": {
+                    "id": 5,
+                    "name": "IV"
+                },
+                "designation": {
+                    "id": 1376,
+                    "name": "Municipal Natural Park",
+                    "jurisdiction": {
+                        "id": 1,
+                        "name": "National"
+                    }
+                },
+                "legal_status": {
+                    "id": 1,
+                    "name": "Designated"
+                },
+                "year": "2003-01-01"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            1.552,
+                            42.626
+                        ],
+                        [
+                            1.564,
+                            42.626
+                        ],
+                        [
+                            1.581,
+                            42.637
+                        ],
+                        [
+                            1.604,
+                            42.625
+                        ],
+                        [
+                            1.608,
+                            42.614
+                        ],
+                        [
+                            1.577,
+                            42.602
+                        ],
+                        [
+                            1.555,
+                            42.616
+                        ],
+                        [
+                            1.549,
+                            42.624
+                        ],
+                        [
+                            1.552,
+                            42.626
+                        ]
+                    ]
+                ]
+            },
+            "properties": {
+                "id": 555625667,
+                "name": "Parc Natural de la Vall de Sorteny",
+                "original_name": "Parc Natural de la Vall de Sorteny",
+                "wdpa_id": 555625667,
+                "management_plan": "http://www.sorteny.ad/presentacio",
+                "is_green_list": false,
+                "iucn_category": {
+                    "id": 5,
+                    "name": "IV"
+                },
+                "designation": {
+                    "id": 1376,
+                    "name": "Municipal Natural Park",
+                    "jurisdiction": {
+                        "id": 1,
+                        "name": "National"
+                    }
+                },
+                "legal_status": {
+                    "id": 1,
+                    "name": "Designated"
+                },
+                "year": "1993-01-01"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            1.64,
+                            42.628
+                        ],
+                        [
+                            1.654,
+                            42.626
+                        ],
+                        [
+                            1.665,
+                            42.619
+                        ],
+                        [
+                            1.682,
+                            42.625
+                        ],
+                        [
+                            1.706,
+                            42.62
+                        ],
+                        [
+                            1.67,
+                            42.592
+                        ],
+                        [
+                            1.66,
+                            42.579
+                        ],
+                        [
+                            1.624,
+                            42.576
+                        ],
+                        [
+                            1.619,
+                            42.58
+                        ],
+                        [
+                            1.625,
+                            42.594
+                        ],
+                        [
+                            1.624,
+                            42.606
+                        ],
+                        [
+                            1.608,
+                            42.614
+                        ],
+                        [
+                            1.604,
+                            42.625
+                        ],
+                        [
+                            1.64,
+                            42.628
+                        ]
+                    ]
+                ]
+            },
+            "properties": {
+                "id": 555625668,
+                "name": "Vedat de ca\u00e7a de Ransol",
+                "original_name": "Vedat de ca\u00e7a de Ransol",
+                "wdpa_id": 555625668,
+                "management_plan": "Under development\r ",
+                "is_green_list": false,
+                "iucn_category": {
+                    "id": 5,
+                    "name": "IV"
+                },
+                "designation": {
+                    "id": 193,
+                    "name": "Hunting Reserve",
+                    "jurisdiction": {
+                        "id": 1,
+                        "name": "National"
+                    }
+                },
+                "legal_status": {
+                    "id": 1,
+                    "name": "Designated"
+                },
+                "year": "2000-01-01"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            1.586,
+                            42.603
+                        ],
+                        [
+                            1.572,
+                            42.604
+                        ],
+                        [
+                            1.549,
+                            42.624
+                        ],
+                        [
+                            1.564,
+                            42.626
+                        ],
+                        [
+                            1.58,
+                            42.637
+                        ],
+                        [
+                            1.595,
+                            42.633
+                        ],
+                        [
+                            1.607,
+                            42.621
+                        ],
+                        [
+                            1.608,
+                            42.614
+                        ],
+                        [
+                            1.595,
+                            42.611
+                        ],
+                        [
+                            1.586,
+                            42.603
+                        ]
+                    ]
+                ]
+            },
+            "properties": {
+                "id": 555625669,
+                "name": "Vedat de ca\u00e7a del Parc Natural de la Vall de Sorteny",
+                "original_name": "Vedat de ca\u00e7a del Parc Natural de la Vall de Sorteny",
+                "wdpa_id": 555625669,
+                "management_plan": "Under development\r ",
+                "is_green_list": false,
+                "iucn_category": {
+                    "id": 5,
+                    "name": "IV"
+                },
+                "designation": {
+                    "id": 193,
+                    "name": "Hunting Reserve",
+                    "jurisdiction": {
+                        "id": 1,
+                        "name": "National"
+                    }
+                },
+                "legal_status": {
+                    "id": 1,
+                    "name": "Designated"
+                },
+                "year": "2000-01-01"
+            }
+        }
+    ]
+}
