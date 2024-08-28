@@ -1,0 +1,44 @@
+# Configuration file for 2_preprocessing.ipynb
+# !DO NOT REMOVE keys, just assign 'null' if needed
+
+# input raster dataset
+lulc: ['lulc_ukceh_25m_{year}.tif','lulc_{year}.tif'] # changed to test UKCEH LULC Maps. To get back to default name, use 'lulc_{year}.tif'
+
+# yearstamp of raster dataset to be enriched with vector data
+year: [2018,2022]
+
+# input vector data
+osm_data: 'osm_merged_{year}.gpkg' # derived from Open Street Map
+user_vector: null # derived from other sources and provided by users 
+
+# input auxiliary csv data
+impedance: 'reclassification_ukceh.csv' # to fetch table with LULC types from UKCEH dataset
+# impedance: 'reclassification.csv' # to fetch table with aggregated LULC types from Catalonian dataset
+# impedance: 'reclassification_ext.csv' # to fetch table with extended LULC types from Catalonian dataset
+
+# paths to directories
+lulc_dir: 'data/input/lulc'
+vector_dir: 'data/input/vector'
+impedance_dir: 'data/input/impedance'
+output_dir: 'data/output'
+
+# matching OSM categories with LULC types
+user_matching: 'true' # should be 'true' by default. 'false' triggers text-matching subtool searching over the definitions of LULC types
+
+# LULC codes of corresponding vector data (all parameters are optional). Listed for UKCEH verification
+lulc_codes:
+    lulc_road: 20
+    lulc_railway: 21
+    lulc_water: 14
+    lulc_urban: null # by default, we are not exporting urban/suburban areas from OSM, but it might be extended in future
+    lulc_suburban: null
+
+# numerical parameters using in the computation
+road_buffer_width: 10 # might be any, but integer value is recommended
+railway_buffer_width: 10 # might be any, but integer value is recommended
+misc_buffer_width: null # null by default
+# TODO - to implement into the code
+
+# for WDPA API (ancillary data on protected areas)
+marine: false # false by default to bring marine protected areas or not. warning: being transformed into 'False' in URI, but recognised as a boolean value. Does not cause issues.
+api_countries: true # true by default. Brings codes of countries intersecting with input raster dataset. Otherwise, user must specify list of countries as ISO3 codes.

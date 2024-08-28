@@ -1,0 +1,20 @@
+.DS_Store
+
+# ignore archive
+archive/
+
+# ignore cache
+cache/
+__pycache__/
+
+# ignore checkpoints
+.ipynb_checkpoints/
+
+# ignore ohsome experiments yet
+ohsome_output/
+output.gejson
+osm_tag_history
+ohsome_response.json
+water_river.csv
+
+# to check .gitignore: git check-ignore -v *

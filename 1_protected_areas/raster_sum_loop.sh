@@ -29,12 +29,14 @@ done
 # loop through each LULC file
 for lulc_file_0 in "$lulc_0_path"/*.tif; do
     # extract last four characters from LULC file name (year)
-    lulc_year="${lulc_file_0: -4}"
+    lulc_year=$(basename "$lulc_file_0" | cut -c 6-9)
+    echo "LULC year: $lulc_year"
 
     # loop through each PA file
     for pa_file in "$pa_path"/*.tif; do
         # extract last four characters from PA file name (year)
-        pa_year="${pa_file: -4}"
+        pa_year=$(basename "$pa_file" | cut -c 5-8)
+        echo "PA year: $pa_year"
 
         # Check if LULC and PA files have matching years
         if [ "$lulc_year" = "$pa_year" ]; then
