@@ -70,7 +70,7 @@
                     "name": "IV"
                 },
                 "designation": {
-                    "id": 193,
+                    "id": 195,
                     "name": "Hunting Reserve",
                     "jurisdiction": {
                         "id": 1,
@@ -81,7 +81,7 @@
                     "id": 1,
                     "name": "Designated"
                 },
-                "year": "2000-01-01"
+                "year": "01/01/2000"
             }
         },
         {
@@ -141,7 +141,7 @@
                     "name": "IV"
                 },
                 "designation": {
-                    "id": 193,
+                    "id": 195,
                     "name": "Hunting Reserve",
                     "jurisdiction": {
                         "id": 1,
@@ -152,7 +152,7 @@
                     "id": 1,
                     "name": "Designated"
                 },
-                "year": "2000-01-01"
+                "year": "01/01/2000"
             }
         },
         {
@@ -212,7 +212,7 @@
                     "name": "Not Reported"
                 },
                 "designation": {
-                    "id": 252,
+                    "id": 253,
                     "name": "Ramsar Site, Wetland of International Importance",
                     "jurisdiction": {
                         "id": 2,
@@ -223,7 +223,7 @@
                     "id": 1,
                     "name": "Designated"
                 },
-                "year": "2012-01-01"
+                "year": "01/01/2012"
             }
         },
         {
@@ -343,7 +343,7 @@
                     "name": "VI"
                 },
                 "designation": {
-                    "id": 252,
+                    "id": 253,
                     "name": "Ramsar Site, Wetland of International Importance",
                     "jurisdiction": {
                         "id": 2,
@@ -354,7 +354,7 @@
                     "id": 1,
                     "name": "Designated"
                 },
-                "year": "2013-01-01"
+                "year": "01/01/2013"
             }
         },
         {
@@ -454,7 +454,7 @@
                     "name": "Not Reported"
                 },
                 "designation": {
-                    "id": 252,
+                    "id": 253,
                     "name": "Ramsar Site, Wetland of International Importance",
                     "jurisdiction": {
                         "id": 2,
@@ -465,7 +465,7 @@
                     "id": 1,
                     "name": "Designated"
                 },
-                "year": "2014-01-01"
+                "year": "01/01/2014"
             }
         },
         {
@@ -565,7 +565,7 @@
                     "name": "IV"
                 },
                 "designation": {
-                    "id": 1376,
+                    "id": 1353,
                     "name": "Municipal Natural Park",
                     "jurisdiction": {
                         "id": 1,
@@ -576,7 +576,7 @@
                     "id": 1,
                     "name": "Designated"
                 },
-                "year": "2003-01-01"
+                "year": "01/01/2003"
             }
         },
         {
@@ -636,7 +636,7 @@
                     "name": "IV"
                 },
                 "designation": {
-                    "id": 1376,
+                    "id": 1353,
                     "name": "Municipal Natural Park",
                     "jurisdiction": {
                         "id": 1,
@@ -647,7 +647,7 @@
                     "id": 1,
                     "name": "Designated"
                 },
-                "year": "1993-01-01"
+                "year": "01/01/1993"
             }
         },
         {
@@ -727,7 +727,7 @@
                     "name": "IV"
                 },
                 "designation": {
-                    "id": 193,
+                    "id": 195,
                     "name": "Hunting Reserve",
                     "jurisdiction": {
                         "id": 1,
@@ -738,7 +738,7 @@
                     "id": 1,
                     "name": "Designated"
                 },
-                "year": "2000-01-01"
+                "year": "01/01/2000"
             }
         },
         {
@@ -802,7 +802,7 @@
                     "name": "IV"
                 },
                 "designation": {
-                    "id": 193,
+                    "id": 195,
                     "name": "Hunting Reserve",
                     "jurisdiction": {
                         "id": 1,
@@ -813,7 +813,7 @@
                     "id": 1,
                     "name": "Designated"
                 },
-                "year": "2000-01-01"
+                "year": "01/01/2000"
             }
         }
     ]

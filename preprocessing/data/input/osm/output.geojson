@@ -1,0 +1,645 @@
+{
+    "attribution": {
+        "url": "https://ohsome.org/copyrights",
+        "text": "\u00a9 OpenStreetMap contributors"
+    },
+    "apiVersion": "1.10.2",
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7169377,
+                        49.4105986
+                    ],
+                    [
+                        8.7167801,
+                        49.4104834
+                    ],
+                    [
+                        8.7168528,
+                        49.4102167
+                    ],
+                    [
+                        8.716574,
+                        49.4100651
+                    ],
+                    [
+                        8.715307,
+                        49.4097074
+                    ],
+                    [
+                        8.7148504,
+                        49.4096
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/18829251",
+                "@validFrom": "2007-12-28T21:53:13Z",
+                "@validTo": "2007-12-31T11:41:58Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113121
+                    ],
+                    [
+                        8.7147195,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/24635983",
+                "@validFrom": "2008-10-03T07:09:54Z",
+                "@validTo": "2009-01-18T21:36:54Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113053
+                    ],
+                    [
+                        8.7147361,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/24635983",
+                "@validFrom": "2009-01-18T21:36:54Z",
+                "@validTo": "2009-04-26T05:22:47Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113053
+                    ],
+                    [
+                        8.7147361,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/24635983",
+                "@validFrom": "2009-04-26T05:22:47Z",
+                "@validTo": "2009-04-26T14:56:23Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113053
+                    ],
+                    [
+                        8.7147361,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/24635983",
+                "@validFrom": "2009-04-26T14:56:23Z",
+                "@validTo": "2009-05-14T10:07:41Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113053
+                    ],
+                    [
+                        8.7147361,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/24635983",
+                "@validFrom": "2009-05-14T10:07:41Z",
+                "@validTo": "2009-05-24T18:13:22Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113053
+                    ],
+                    [
+                        8.7147361,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/24635983",
+                "@validFrom": "2009-05-24T18:13:22Z",
+                "@validTo": "2009-05-24T21:16:02Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113053
+                    ],
+                    [
+                        8.7147361,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/24635983",
+                "@validFrom": "2009-05-24T21:16:02Z",
+                "@validTo": "2011-03-07T00:22:32Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113053
+                    ],
+                    [
+                        8.7147361,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/24635983",
+                "@validFrom": "2011-03-07T00:22:32Z",
+                "@validTo": "2011-04-28T17:59:50Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113053
+                    ],
+                    [
+                        8.7147361,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/24635983",
+                "@validFrom": "2011-04-28T17:59:50Z",
+                "@validTo": "2011-08-11T21:43:44Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.411299
+                    ],
+                    [
+                        8.7147517,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/24635983",
+                "@validFrom": "2011-08-11T21:43:44Z",
+                "@validTo": "2011-10-15T23:10:56Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.411299
+                    ],
+                    [
+                        8.7147517,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/24635983",
+                "@validFrom": "2011-10-15T23:10:56Z",
+                "@validTo": "2011-10-16T17:38:57Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.411299
+                    ],
+                    [
+                        8.7147517,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/24635983",
+                "@validFrom": "2011-10-16T17:38:57Z",
+                "@validTo": "2011-10-17T12:13:29Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.411299
+                    ],
+                    [
+                        8.7147517,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/24635983",
+                "@validFrom": "2011-10-17T12:13:29Z",
+                "@validTo": "2012-03-15T23:31:15Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113938
+                    ],
+                    [
+                        8.7145407,
+                        49.4118136
+                    ],
+                    [
+                        8.7146947,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/155222655",
+                "@validFrom": "2012-03-15T23:31:12Z",
+                "@validTo": "2013-12-22T18:14:14Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113938
+                    ],
+                    [
+                        8.7145407,
+                        49.4118136
+                    ],
+                    [
+                        8.7146947,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/155222655",
+                "@validFrom": "2013-12-22T18:14:14Z",
+                "@validTo": "2013-12-28T15:59:49Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113938
+                    ],
+                    [
+                        8.7145407,
+                        49.4118136
+                    ],
+                    [
+                        8.7146995,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/155222655",
+                "@validFrom": "2013-12-28T15:59:49Z",
+                "@validTo": "2014-01-28T20:51:16Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113938
+                    ],
+                    [
+                        8.7145407,
+                        49.4118136
+                    ],
+                    [
+                        8.7146995,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/155222655",
+                "@validFrom": "2014-01-28T20:51:16Z",
+                "@validTo": "2014-09-07T12:08:10Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113938
+                    ],
+                    [
+                        8.7145407,
+                        49.4118136
+                    ],
+                    [
+                        8.7146995,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/155222655",
+                "@validFrom": "2014-09-07T12:08:10Z",
+                "@validTo": "2016-04-19T05:26:23Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113938
+                    ],
+                    [
+                        8.7145407,
+                        49.4118136
+                    ],
+                    [
+                        8.7146995,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/155222655",
+                "@validFrom": "2016-04-19T05:26:23Z",
+                "@validTo": "2017-04-09T22:13:31Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113938
+                    ],
+                    [
+                        8.7145407,
+                        49.4118136
+                    ],
+                    [
+                        8.7146995,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/155222655",
+                "@validFrom": "2017-04-09T22:13:31Z",
+                "@validTo": "2017-08-12T08:42:32Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113938
+                    ],
+                    [
+                        8.7145407,
+                        49.4118136
+                    ],
+                    [
+                        8.7146995,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/155222655",
+                "@validFrom": "2017-08-12T08:42:32Z",
+                "@validTo": "2018-06-13T07:22:12Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113938
+                    ],
+                    [
+                        8.7145407,
+                        49.4118136
+                    ],
+                    [
+                        8.7146995,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/155222655",
+                "@validFrom": "2018-06-13T07:22:12Z",
+                "@validTo": "2019-05-18T15:26:30Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113938
+                    ],
+                    [
+                        8.7145407,
+                        49.4118136
+                    ],
+                    [
+                        8.7146995,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/155222655",
+                "@validFrom": "2019-05-18T15:26:30Z",
+                "@validTo": "2020-04-24T17:24:29Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113938
+                    ],
+                    [
+                        8.7145407,
+                        49.4118136
+                    ],
+                    [
+                        8.7146995,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/155222655",
+                "@validFrom": "2020-04-24T17:24:29Z",
+                "@validTo": "2021-02-01T11:26:50Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113938
+                    ],
+                    [
+                        8.7145407,
+                        49.4118136
+                    ],
+                    [
+                        8.7146995,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/155222655",
+                "@validFrom": "2021-02-01T11:26:50Z",
+                "@validTo": "2022-02-04T13:09:37Z"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        8.7137,
+                        49.4113938
+                    ],
+                    [
+                        8.7145407,
+                        49.4118136
+                    ],
+                    [
+                        8.7146995,
+                        49.4119
+                    ]
+                ]
+            },
+            "properties": {
+                "@osmId": "way/155222655",
+                "@validFrom": "2022-02-04T13:09:37Z",
+                "@validTo": "2022-12-31T00:00:00Z"
+            }
+        }
+    ]
+}
