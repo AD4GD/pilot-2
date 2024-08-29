@@ -17,4 +17,7 @@ osm_tag_history
 ohsome_response.json
 water_river.csv
 
+# ignore visualisation
+visualisation/workflow.pptx
+
 # to check .gitignore: git check-ignore -v *
