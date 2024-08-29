@@ -1,7 +1,7 @@
-# Configuration file for 2_preprocessing.ipynb
+# Configuration file for 2_preprocessing.ipynb and 3_
 # !DO NOT REMOVE keys, just assign 'null' if needed
 
-# input raster dataset
+# input raster dataset with a placeholder of the year
 lulc: ['lulc_ukceh_25m_{year}.tif','lulc_{year}.tif'] # changed to test UKCEH LULC Maps. To get back to default name, use 'lulc_{year}.tif'
 
 # yearstamp of raster dataset to be enriched with vector data
@@ -17,6 +17,7 @@ impedance: 'reclassification_ukceh.csv' # to fetch table with LULC types from UK
 # impedance: 'reclassification_ext.csv' # to fetch table with extended LULC types from Catalonian dataset
 
 # paths to directories
+input_dir: 'data/input'
 lulc_dir: 'data/input/lulc'
 vector_dir: 'data/input/vector'
 impedance_dir: 'data/input/impedance'
