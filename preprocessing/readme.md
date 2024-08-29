@@ -1,15 +1,16 @@
 ### Enrichment of land-use/land-cover (LULC) data
-
 The preprocessing workflow currently includes three separate Jupyter Notebooks:
 
 - **[Enrichment with data on protected areas](preprocessing/1_preprocessing_pas.ipynb)**
 Available only through the authorised credentials (token), as it uses the special API (should be an optional module).
 - **[Fetching historical vector data](2_osm_historical.ipynb)**
 Available without authorised credentials, uses open-access API (mandatory).
-- **[Rewriting and harmonising input data]**(3_preprocessing.ipynb)*
+- **[Rewriting and harmonising input data](3_preprocessing.ipynb)**
 Preprocessing itself – reprojection, checking, rewriting raster files etc. (mandatory)
 
-Detailed descriptions of each nested workflow are given in the heads of Jupyter Notebooks.
+Detailed descriptions of each nested workflow are given at the beginnings of Jupyter Notebooks.
+
+The workflow can be also explored on the overarching diagram:![diagram](visualisation/workflow.png)
 
 #### Current state
 
@@ -23,3 +24,5 @@ This tool is mostly completed, but a few improvements are planned to be done:
 - Create a few options of 'decay rate' (from specific categories of land use, 'stressors') expressions for user to choose from.
 - Replace NULL values of 'width' for roads and railways with self-defined width in SQL queries.
 - WDPA API: iterate over the pages of the response and concatenate to the final response.
+- WDPA API. For LULC codes covered by protected areas, define the multiplier of impedance (effect of protected areas), cast to the yaml file and automatically estimate impedance value.
+- For use case study: revisit Catalonian government data and decide on its usage.
