@@ -2,10 +2,14 @@
 # !DO NOT REMOVE keys, just assign 'null' if needed
 
 # input raster dataset with a placeholder of the year
-lulc: ['lulc_ukceh_25m_{year}.tif','lulc_{year}.tif'] # changed to test UKCEH LULC Maps. To get back to default name, use 'lulc_{year}.tif'
+lulc: 'lulc_ukceh_25m_{year}.tif' # changed to test UKCEH LULC Maps. To get back to default name, use 'lulc_{year}.tif'
+# to test list of lulc filenames (not implemented for all blocks)
+# lulc: ['lulc_ukceh_25m_{year}.tif','lulc_{year}.tif']
 
 # yearstamp of raster dataset to be enriched with vector data
-year: [2018,2022]
+year: 2018
+# to test list of year timestamps (not implemented for all blocks)
+# year: [2018,2022]
 
 # input vector data
 osm_data: 'osm_merged_{year}.gpkg' # derived from Open Street Map
