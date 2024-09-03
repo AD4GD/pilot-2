@@ -1,5 +1,5 @@
 # reprojection.py
-# includes a few methods to optimise transfomations between raster files (minimum and maximum coordinates of raster dataset (bounding box) into WGS84, according to the config.yaml file))
+# includes a few methods to optimise transformations between raster files (minimum and maximum coordinates of raster dataset (bounding box) into WGS84, according to the config.yaml file))
 # should be imported as a class
 
 from osgeo import gdal, osr
