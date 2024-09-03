@@ -11,7 +11,7 @@ year: 2018
 # to test list of year timestamps (not implemented for all blocks)
 # year: [2018,2022]
 
-# input vector data
+# input vector data  TODO delete this in future when the workflows are combined
 osm_data: 'osm_merged_{year}.gpkg' # derived from Open Street Map
 user_vector: null # derived from other sources and provided by users 
 
