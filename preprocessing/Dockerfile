@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install jupyterlab
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 WORKDIR /data
 CMD ["jupyter" , "lab", "--allow-root", "--port=9999", "--ip=0.0.0.0", "--no-browser"]
