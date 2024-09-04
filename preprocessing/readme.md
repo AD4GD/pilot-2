@@ -27,3 +27,7 @@ This tool is mostly completed, but a few improvements are planned to be done:
 - Implement [VRT](https://gdal.org/en/latest/drivers/raster/vrt.html) file format if possible to save resource.
 - WDPA API. For LULC codes covered by protected areas, define the multiplier of impedance (effect of protected areas), cast to the yaml file and automatically estimate impedance value.
 - For use case study: revisit Catalonian government data and decide on its usage.
+
+#### Run the docker image
+
+From this directory run `docker compose up --build`, this will build the docker image defined by `Dockerfile` and then bring it up using the port forwards and mount points defined in `docker-compose.yml`
