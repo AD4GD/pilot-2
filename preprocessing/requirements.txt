@@ -2,3 +2,4 @@ jupyterlab
 shapely
 gdal # TODO: Shouldn't this be installed by the base image??
 geopandas
+overpy
