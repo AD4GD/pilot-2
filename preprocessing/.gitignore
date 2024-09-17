@@ -24,6 +24,9 @@ cwl/
 # ignore virtual documents
 .virtual_documents/
 
+# ignore some large files
+data/input/vector/osm_merged_2023.gpkg
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
