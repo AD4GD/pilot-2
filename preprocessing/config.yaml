@@ -7,7 +7,7 @@ lulc: 'lulc_ukceh_25m_{year}.tif' # changed to test UKCEH LULC Maps. To get back
 # lulc: ['lulc_ukceh_25m_{year}.tif','lulc_{year}.tif']
 
 # yearstamp of raster dataset to be enriched with vector data
-year: 2018
+year: 2023
 # to test list of year timestamps (not implemented for all blocks)
 # year: [2018,2022]
 
