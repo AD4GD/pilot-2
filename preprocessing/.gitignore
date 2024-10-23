@@ -17,8 +17,18 @@ ohsome_output/
 output.gejson
 ohsome_response.json
 water_river.csv
+config_ohsome.yaml
+osm_tag_history.py
+ohsome_geom.py
+ohsome_geom_date.py
 
-# ignore cwl development
+# ignore all CSVs in the parent directory
+/*.csv
+
+# ignore bfg Java application
+bfg-1.14.0.jar
+
+# ignore cwl tests
 cwl/
 
 # ignore virtual documents
@@ -26,6 +36,7 @@ cwl/
 
 # ignore some large files
 data/input/vector/osm_merged_2023.gpkg
+data/input/vector/osm_merged_2022.gpkg
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

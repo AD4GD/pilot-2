@@ -1,10 +1,10 @@
 # Configuration file for 2_preprocessing.ipynb and 3_
 # !DO NOT REMOVE keys, just assign 'null' if needed
 
-# input raster dataset with a placeholder of the year
-lulc: 'lulc_ukceh_25m_{year}.tif' # changed to test UKCEH LULC Maps. To get back to default name, use 'lulc_{year}.tif'
+# input GeoTIFF dataset with a placeholder of the year
+lulc: 'lulc_ukceh_25m_{year}.tif' # To test UKCEH: 'lulc_ukceh_25m_{year}.tif'. To test Catalonia dataset: 'lulc_{year}.tif'
 # to test list of lulc filenames (not implemented for all blocks)
-# lulc: ['lulc_ukceh_25m_{year}.tif','lulc_{year}.tif']
+# lulc: ['lulc_ukceh_25m_{year}.tif','lulc_{year}.tif']'lulc_ukceh_25m_{year}.tif'
 
 # yearstamp of raster dataset to be enriched with vector data
 year: 2018
@@ -16,9 +16,15 @@ osm_data: 'osm_merged_{year}.gpkg' # derived from Open Street Map
 user_vector: null # derived from other sources and provided by users 
 
 # input auxiliary csv data
-impedance: 'reclassification_ukceh.csv' # to fetch table with LULC types from UKCEH dataset
+impedance: 'reclassification_ukceh.csv'
+# impedance: 'reclassification_ukceh.csv' # to fetch table with LULC types from UKCEH dataset
 # impedance: 'reclassification.csv' # to fetch table with aggregated LULC types from Catalonian dataset
 # impedance: 'reclassification_ext.csv' # to fetch table with extended LULC types from Catalonian dataset
+
+# input auxiliary GeoTIFF dataset (impedance based on LULC dataset)
+impedance_tif: 'impedance_lulc_ukceh_25m_{year}.tif' # added 'impedance_' prefix. 
+# For UKCEH: 'impedance_lulc_ukceh_25m_{year}.tif' 
+# For Catalonia: 'impedance_lulc_{year}.tif'
 
 # paths to directories
 input_dir: 'data/input'
@@ -32,9 +38,9 @@ user_matching: 'true' # should be 'true' by default. 'false' triggers text-match
 
 # LULC codes of corresponding vector data (all parameters are optional). Listed for UKCEH verification
 lulc_codes:
-    lulc_road: 20
-    lulc_railway: 21
-    lulc_water: 14
+    lulc_road: 20 # UKCEH: 20, Catalonia: 2
+    lulc_railway: 21 # UKCEH: 21, Catalonia: 2
+    lulc_water: 14 # UKCEH: 14, Catalonia: 1
     lulc_urban: null # by default, we are not exporting urban/suburban areas from OSM, but it might be extended in future
     lulc_suburban: null
 
