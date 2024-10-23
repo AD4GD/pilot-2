@@ -55,6 +55,9 @@ MANIFEST
 # ignore large files in Graphab
 graphab/output/graphab_test/
 
+# ignore git-BFG cleaner
+.git.bfg-report/
+
 ## OTHER PATHS 
 
 # PyInstaller
