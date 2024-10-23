@@ -52,6 +52,8 @@ MANIFEST
 *.manifest
 *.spec
 
+# ignore large files in Graphab
+graphab/output/graphab_test/
 
 ## OTHER PATHS 
 
