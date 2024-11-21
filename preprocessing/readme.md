@@ -18,7 +18,7 @@ This tool is mostly completed, but a few improvements are planned to be done:
 
 - **Design user-friendly GUI tool (maybe, semi-automatic) instead of separate Notebooks/scripts and prepare for the publication.**
 - **Implement Common Workflow Language (CWL).**
-- **WDPA API: iterate over the pages of the response and concatenate to the final response.**
+- **Protected Planet API: iterate over the pages of the response and concatenate to the final response.**
 - Implement iterations over multiple LULC files (by year and location) and multiple OSM requests (iterating over the combination of filename-yearname).
 - Test [ohsome API](https://docs.ohsome.org/ohsome-api/v1/) again to prove that not all attributes of OSM features can be fetched and justify the usage of Overpass Turbo API instead of ohsome API. See [issue](https://github.com/GIScience/ohsome-api/issues/332).
 - Complete statistics for deprecated and new tags for Catalonia and UK through ohsome API.
