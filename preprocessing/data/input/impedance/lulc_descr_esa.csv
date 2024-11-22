@@ -1,0 +1,23 @@
+﻿lulc,impedance,type,impedance_rounded,edge_effect,vector_refine
+1,200,Water,200,0,1
+2,1,Trees,1,0,0
+3,,null,,0,0
+4,3,Flooded Vegetation,3,0,0
+5,20,Crops,20,0,0
+6,,null,,0,0
+7,1000,Built Area,1000,1,1
+8,50,Bare Ground,50,0,0
+9,100,Snow/Ice,100,0,0
+10,,Clouds,,0,0
+11,10,Rangeland,10,0,0
+101,100,Protected-Water,100,0,1
+102,0.5,Protected-Trees,1,0,0
+103,0,Protected-null,0,0,0
+104,1.5,Protected-Flooded Vegetation,2,0,0
+105,10,Protected-Crops,10,0,0
+106,0,Protected-null,0,0,0
+107,500,Protected-Built Area,500,1,1
+108,25,Protected-Bare Ground,25,0,0
+109,50,Protected-Snow/Ice,50,0,0
+110,0,Protected-Clouds,0,0,0
+111,5,Protected-Rangeland,5,0,0
