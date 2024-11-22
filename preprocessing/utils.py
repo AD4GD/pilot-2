@@ -98,35 +98,6 @@ def extract_attribute_values(vector_gpkg:str, layer_name:str=None, attribute:str
         values = layer.GetNextFeature()
 
     return unique_values
-
-
-def merge_tiffs_into_vrt(self, tiffs:list, output_path:str):
-    """
-    Merge multiple raster datasets into a single VRT file.
-
-    Args:
-        tiffs (list): list of paths to the raster datasets
-        output_path (str): path to the output VRT file
-
-    Returns:
-        None
-    """
-    # write the list to a new file (path to the file is ../data/list_of_tiff_files.txt)
-    tiffs_filepaths = output_path.replace('.vrt', '_tiffs.txt')
-    with open(tiffs_filepaths, "w") as f:
-        for item in tiffs:
-            f.write(item + "\n")
-
-    gdal_command = f"""gdalbuildvrt -input_file_list {tiffs_filepaths} {output_path}"""
-    proc = Popen(gdal_command, shell=True, stdout=PIPE, stderr=PIPE)
-    stdout, stderr = proc.communicate()
-    # remove the list of tiff files
-    os.remove(tiffs_filepaths)
-
-    if proc.returncode != 0:
-        print(proc.returncode)
-        print("STDERR:", stderr.decode())
-        raise Exception("Error creating VRT")
     
 
 def find_stressor_params(config_dict:dict, search_key:str):
