@@ -1,15 +1,15 @@
-## **Data4Land** tool - enriching land-use/land-cover with historical vector data#
+## **Data4Land** tool - enriching land-use/land-cover with historical vector data
 
 Data4Land tool is developed to enrich various land-use/land-cover (LULC) spatial data with data from another sources to increase the consistency and reliability of LULC datasets for multiple purposes. This software currently includes four separate Jupyter Notebooks:
 
 1. **[Access to historical data from the World Database on Protected Areas (WDPA) and harmonization](1_pas.ipynb)**
-Available only through the authorised credentials (token), as it uses the special API (***OPTIONAL***).
+Available only through the authorised credentials (token), as it uses the special API.
 2. **[Access and harmonisation of historical vector data on land-use/land-cover (LULC) - Open Street Map (OSM) data ](2_vector.ipynb)**
-Available without authorised credentials, uses open-access API (**MANDATORY**).
+Available without authorised credentials, uses open-access API.
 3. **[Enrichment of land-use/land-cover (LULC) data](3_enrichment.ipynb)**
-Rectification of commonly produced land-use/land-cover (LULC) raster data with auxiliary data from 1st, 2nd Notebooks or user-defined data. (**MANDATORY**).
+Rectification of commonly produced land-use/land-cover (LULC) raster data with auxiliary data from 1st, 2nd Notebooks or user-defined data.
 4. **[Impedance calculation ('edge effect' of biodiversity stressors)](4_impedance.ipynb)**
-Calculates 'landscape impedance' datasets based on user-defined biodiversity stressors. This block is useful for researchers to proceed with habitat connectivity studies (***OPTIONAL***).
+Calculates 'landscape impedance' datasets based on user-defined biodiversity stressors. This block is useful for researchers to proceed with habitat connectivity studies.
 
 Detailed documentation on each nested workflow is given at the beginnings of Jupyter Notebooks and includes descriptions of all input and output datasets.
 Sample input dataset is extracted from [ESA Sentinel-2](https://collections.sentinel-hub.com/impact-observatory-lulc-map/) remote sensing spatial datasets and located [here](data/input/).
