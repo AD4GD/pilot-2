@@ -1,1 +1,0 @@
-This workflow to enrich existing LULC raster data with vector data on protected areas can be accessed through the [Jupyter Notebook](preprocessing_pas.ipynb) with the link to external shell script as its execution is limited by system specifications of developer.
