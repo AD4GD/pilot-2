@@ -18,7 +18,7 @@ RUN npm install -g osmtogeojson
 # get dos2unix to convert bash files
 RUN apt-get install --fix-missing -y dos2unix
 
-WORKDIR /data
+WORKDIR /src
 CMD ["jupyter" , "lab", "--allow-root", "--port=9999", "--ip=0.0.0.0", "--no-browser"]
 
 # Copy the requirements.txt file into the container
