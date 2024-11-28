@@ -7,7 +7,7 @@ lulc_0_path="$(realpath "$(pwd)")/data/input/lulc_0"
 # Output directory - save to parent directory with input LULC datasets
 lulc_upd_compr_path="$(realpath "$(pwd)")/data/input/lulc"
 # previous version - in subnested directory: lulc_upd_compr_path="lulc_pa"
-inter_path="$(realpath "$(pwd)")/1_protected_areas"
+inter_path="$(realpath "$(pwd)")/data/output/protected_areas"
 
 # Create these directories if they don't exist
 mkdir -p "$lulc_0_path" 
@@ -19,7 +19,7 @@ echo "LULC path: $lulc_path"
 lulc_files=("$lulc_path"/*.tif)
 
 # Set directory with PA files
-pa_path="${inter_path}/pas_timeseries"
+pa_path="${inter_path}/pa_rasters"
 pa_files=("$inter_path/$pa_path"/*.tif)
 echo "Path to rasterised protected areas: $pa_files"
 
