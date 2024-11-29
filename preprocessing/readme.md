@@ -23,6 +23,23 @@ Sample input dataset is extracted from [ESA Sentinel-2](https://collections.sent
 All configuration to execute Jupyter Notebooks is pre-defined for the sample dataset in the [configuration YAML file](src/config/config.yaml): paths, filenames, API parameters, user-defined numerical parameters.
 Data flow within the Data4Land tool can be also explored on the overarching diagram:![diagram](visualisation/workflow.png).
 
+### Installation
+Each Jupyter Notebook is recommended to execute through a built Docker to ensure that all dependencies needed are installed correctly. Otherwise, some of the libraries used by Data4Land may face issues. Multiple ways to configure and install Docker are available:
+[Windows](https://www.docker.com/products/docker-desktop/), [Linux](https://docs.docker.com/desktop/setup/install/linux/), [Mac](https://docs.docker.com/desktop/setup/install/mac-install/).
+Once Docker is installed, user need to:
+- download the software repository
+- in command line run 'cd /path/data4land' (navigate to the working directory on local machine, replace the directory name if required)
+- then run 'docker-compose up' (this will run all Docker commands and start up a Jupyter server)
+
+To execute Jupyter Notebook users need to either: 
+- navigate to http:localhost:9999 or
+- copy URL with token from the console and paste it to browser or another tool used to run Jupyter Notebook (for example, *http://localhost:9999/?token=abcd123400000000000000000000000*)
+
+Now, everything is prepared to execute the Jupyter Notebooks within a Docker environment.
+
+#### Impact
+The example of follow-up calculations of habitat connectivity based on non-enriched and enriched LULC datasets is given [here](stats/) to illustrate the significant impact of enriched raster pixels.
+
 #### Further development
 This tool is mostly completed, but a few improvements are planned to be done:
 
@@ -32,9 +49,6 @@ This tool is mostly completed, but a few improvements are planned to be done:
 - Implement ingestion of other spatial features which may act opposed to biodiversity stressors, for example, [small woody features](https://land.copernicus.eu/en/products/high-resolution-layer-small-woody-features).
 - Implement iterations over multiple LULC files (by year and location) and multiple OSM requests (iterating over the combination of filename-yearname).
 - For use case studies: revisit Catalonian government data and decide on its usage, whether it can support OSM data or not.
-
-#### Impact
-The example of follow-up calculations of habitat connectivity based on non-enriched and enriched LULC datasets is given [here](stats/) to illustrate the significant impact of enriched raster pixels.
 
 #### Acknowledgement
 This software is the part of the [AD4GD project, biodiversity pilot](https://ad4gd.eu/biodiversity/). The AD4GD project is co-funded by the European Union, Switzerland and the United Kingdom.
