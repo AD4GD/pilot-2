@@ -1,0 +1,22 @@
+﻿lulc,impedance,type,impedance_rounded,edge_effect,vector_refine
+1,1,Broadleaved woodland,1,0,0
+2,2,Coniferous woodland,2,0,0
+3,25,Arable and horticulture,25,0,0
+4,7,Improved grassland,7,0,0
+5,5,Neutral grassland,5,0,0
+6,5,Calcaerous grassland,5,0,0
+7,5,Acid grassland,5,0,0
+8,10,"Fen, marsh and swamp",10,0,0
+9,15,Heather,15,0,0
+10,12,Heather grassland,12,0,0
+11,15,Bog,15,0,0
+12,30,Inland rock,30,0,0
+13,200,Saltwater,200,0,0
+14,100,Freshwater,100,0,1
+15,50,Supralittoral rock,50,0,0
+16,50,Supralittoral sediment,50,0,0
+17,50,Littoral rock,50,0,0
+18,50,Littoral sediment,50,0,0
+19,50,Saltmarsh,50,0,0
+20,1000,Urban,1000,1,1
+21,500,Suburban,500,1,1
