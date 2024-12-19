@@ -60,6 +60,7 @@ for lulc_file in "$lulc_path"/*.tif; do
             lulc_upd_compr_file="${lulc_upd_compr_file%_upd.tif}"
             lulc_upd_compr_file="$lulc_upd_compr_path/${lulc_upd_compr_file##*/}_pa.tif"
             echo "Compressed LULC is uploaded to: $lulc_upd_compr_file"
+            echo "----------------------------------"
 
             # Compress and set no data values
             gdal_translate -a_nodata $nodata -co COMPRESS=LZW -co TILED=YES "$lulc_upd_file" "$lulc_upd_compr_file"

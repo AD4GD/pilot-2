@@ -5,3 +5,9 @@
 # executable to clean repository
 bfg-1.14.0.jar
 env/
+
+.vscode
+
+/preprocessing/src/correlation.py
+/preprocessing/src/stats_prox_lulc.py
+/preprocessing/src/config/config_impedance_albera_example.yaml
