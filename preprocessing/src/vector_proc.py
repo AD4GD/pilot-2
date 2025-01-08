@@ -23,25 +23,20 @@ class VectorTransform:
         - None
         """
         file_path = os.path.join(self.directory, filename)
-        
-        # use subprocess to get the CRS of the vector dataset
-        ogr_command = f"ogrinfo -ro -al {file_path} -spat 0 0 0 0"
-        proc = Popen(ogr_command, shell=True, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = proc.communicate()
-        if proc.returncode != 0:
-            raise RuntimeError(stderr)
+
+
+        ds = ogr.Open(file_path)
+        layer = ds.GetLayer(0)
+        spatial_ref = layer.GetSpatialRef()
+        vector_crs = spatial_ref.GetAttrValue("AUTHORITY", 1)  
+        print(f"CRS of the vector dataset '{filename}' is EPSG:{vector_crs}.")
+        if vector_crs != crs:
+            warnings.warn(f"CRS of the vector dataset '{vector_crs}' does not match the specified CRS: {crs}.")
+            return False
         else:
-            vector_crs = stdout.decode().split("USAGE[")[1].split('["EPSG",')[1].split(']')[0]
-            print(f"CRS of the vector dataset '{filename}' is EPSG:{vector_crs}.")
-            if vector_crs != crs:
-                warnings.warn(f"CRS of the vector dataset '{vector_crs}' does not match the specified CRS: {crs}.")
-                return False
-            else:
-                print(f"Good news! CRS of the vector dataset '{filename}' matches the specified CRS: {crs}.")
-                return True
+            print(f"Good news! CRS of the vector dataset '{filename}' matches the specified CRS: {crs}.")
+            return True
 
-
-        
     def reproject_vector(self, crs:str, overwrite:bool=False):
         """
         This function transforms the input vector dataset to the specified CRS if the CRS of the input vector dataset is different from the specified CRS.

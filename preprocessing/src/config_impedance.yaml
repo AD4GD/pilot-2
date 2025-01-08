@@ -1,0 +1,33 @@
+initial_lulc:
+  enabled: true
+  stressor_lulc_4_2022:
+    decline_type: exp_decline
+    exp_decline:
+      lambda_decay: 500
+    prop_decline:
+      k_value: 500
+    types: null
+  stressor_lulc_5_2022:
+    decline_type: exp_decline
+    exp_decline:
+      lambda_decay: 500
+    prop_decline:
+      k_value: 500
+    types: null
+  stressor_lulc_6_2022:
+    decline_type: exp_decline
+    exp_decline:
+      lambda_decay: 500
+    prop_decline:
+      k_value: 500
+    types: null
+  stressor_lulc_7_2022:
+    decline_type: exp_decline
+    exp_decline:
+      lambda_decay: 500
+    prop_decline:
+      k_value: 500
+    types: null
+vector:
+  enabled: true
+  types: true

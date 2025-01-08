@@ -14,6 +14,7 @@ class RasterTransform:
         self.y_min_before = None
         self.x_max_before = None
         self.y_max_before = None
+        nodata = None
 
     def get_raster_info(self):
 
@@ -50,10 +51,17 @@ class RasterTransform:
         else:
             raise ValueError("No projection information found in the input raster.")
 
+        # fetch no-data value from the first raster band
+        band = raster.GetRasterBand(1)
+        nodata = band.GetNoDataValue()
+        print(f"No Data value of the input raster dataset is: {nodata}")
+        if nodata is None:
+            raise ValueError("Failed to fetch the no data value of the input raster.")
+            
         # close the raster to keep memory empty
         raster = None
 
-        return self.x_min_before, self.x_max_before, self.y_min_before, self.y_max_before, cell_size
+        return self.x_min_before, self.x_max_before, self.y_min_before, self.y_max_before, cell_size, nodata
     
     def check_cart_crs(self):
         """
@@ -102,6 +110,7 @@ class RasterTransform:
             warning_message_3 = "The CRS is not the Cartesian one. To exploit this workflow correctly, you should reproject it."
             warnings.warn(warning_message_3, Warning)
         else:
+            is_cartesian = True
             print("Good news! The CRS of your input raster dataset is the Cartesian (projected) one.")
     
         return is_cartesian, crs_info
@@ -155,7 +164,7 @@ class RasterTransform:
         Transforms coordinates and prints spatial resolution and bounding box details.
         """
         # fetch raster information
-        _, _, _, _, cell_size = self.get_raster_info()
+        _, _, _, _, cell_size, _ = self.get_raster_info()
         x_min_after, y_min_after, x_max_after, y_max_after = self.transform_coordinates()
 
         print (f"Spatial resolution (pixel size) is {cell_size} meters")
