@@ -67,7 +67,7 @@ class PAProcessorWrapper:
         return geojson_filepaths
     
 
-    def merge_geojsons_to_geopackage(self, geojson_filepaths:list[str], output_file:str = "merged_protected_areas.gpkg") -> str:
+    def merge_geojsons_to_geopackage(self, geojson_filepaths:list[str], output_file:str = "merged_pa.gpkg") -> str:
         """
         Merges all GeoJSON files into a single GeoPackage file with different layers for each country.
 

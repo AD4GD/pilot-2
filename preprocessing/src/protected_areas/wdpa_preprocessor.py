@@ -6,7 +6,6 @@ from itertools import product
 
 #local imports
 from reprojection import RasterTransform
-from utils import load_yaml
 
 class WDPAPreprocessor():
     """
@@ -15,7 +14,7 @@ class WDPAPreprocessor():
     Since the LULC rasters have the same extent, we only need to fetch the country codes for one raster.
     """
 
-    def __init__(self, config:dict,  current_dir:str) -> None:
+    def __init__(self, config:dict,  current_dir:str, verbose:bool) -> None:
         """
         Initialize the WDPAPreprocessor
 
@@ -26,6 +25,7 @@ class WDPAPreprocessor():
         """
         self.current_dir = current_dir
         self.config = config
+        self.verbose = verbose
 
         # read year 
         self.years = self.config.get('year', None)
@@ -73,7 +73,7 @@ class WDPAPreprocessor():
         for lulc_template, year in product(lulc_templates, years): 
             try:
                 # substitute year in the template
-                lulc_file = lulc_template.format(year=year)
+                lulc_file = str(lulc_template).format(year=year)
                 # construct the full path to the input raster dataset
                 lulc_path = os.path.join(self.current_dir, self.lulc_dir, lulc_file)
                 # mormalize the path to ensure it is correctly formatted
@@ -92,9 +92,10 @@ class WDPAPreprocessor():
                 print(f"File does not exist: {lulc_templates}")
 
         # list all existing filenames to process
-        print("\n List of available input raster datasets to process:")
-        for lulc_templates in existing_lulc_series:
-            print(f"Processing file: {lulc_templates}")
+        if self.verbose:
+            print("\n List of available input raster datasets to process:")
+            for lulc_templates in existing_lulc_series:
+                print(f"Processing file: {lulc_templates}")
 
         # update lulc_series with files that exist
         return existing_lulc_series
@@ -155,7 +156,7 @@ class WDPAPreprocessor():
         """
         lulc_country_codes = {}
         lulc = self.lulc_series[0]
-        x_min, y_min, x_max, y_max = RasterTransform(lulc).bbox_to_WGS84()
+        x_min, y_min, x_max, y_max = RasterTransform(lulc).bbox_to_WGS84(print_details=self.verbose)
         bbox = f"{x_min},{y_min},{x_max},{y_max}"
         lulc_country_codes[lulc] = self.get_country_code_from_bbox(bbox, output_path)
         return lulc_country_codes

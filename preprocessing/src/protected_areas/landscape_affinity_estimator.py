@@ -2,6 +2,7 @@ import os
 import subprocess
 import numpy as np
 from osgeo import gdal
+from rich import print
 
 class LandscapeAffinityEstimator:
     """
@@ -74,4 +75,4 @@ class LandscapeAffinityEstimator:
                 os.rename(compressed_raster_path, affinity_path)
                 print(f"Affinity file is successfully compressed.", end="\n------------------------------------------\n")
 
-        print("All LULC affinities have been successfully computed.")
+        print("[green] All LULC affinities have been successfully computed. [green]")

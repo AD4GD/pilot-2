@@ -1,6 +1,5 @@
 # external imports
 import os
-import sys
 
 # local imports
 from protected_areas.wdpa_preprocessor import WDPAPreprocessor
@@ -18,17 +17,19 @@ class WDPAWrapper():
     The input LULC raster bounding box is extracted and used to fetch the unique ISO 3166-1 alpha-3 country code from the ohsome API.
     """
 
-    def __init__(self, working_dir:str,config_path:str) -> None:
+    def __init__(self, working_dir:str,config_path:str, verbose:bool) -> None:
         """
         Initialize the WDPAWrapper class
 
         Args:
             working_dir (str): path to the current/working directory
             config_path (str): path to the configuration file
+            verbose (bool): verbose output
         """
 
         self.working_dir = working_dir
         self.config = load_yaml(config_path)
+        self.verbose = verbose
 
         self.pa_input_dir = os.path.abspath(os.path.join(working_dir, "data","input","protected_areas"))
         os.makedirs(self.pa_input_dir, exist_ok=True)
@@ -45,7 +46,7 @@ class WDPAWrapper():
             dict: A dictionary of unique ISO3 country codes.
         """
         # initialize the WDPAPreprocessor class
-        lulc_ccp = WDPAPreprocessor(self.config, self.working_dir)
+        lulc_ccp = WDPAPreprocessor(self.config, self.working_dir, self.verbose)
         # fetch the unique country codes from input LULC raster data
         lulc_country_codes = set().union(*dict(lulc_ccp.fetch_lulc_country_codes(self.pa_output_dir)).values())
         return lulc_country_codes
@@ -63,7 +64,7 @@ class WDPAWrapper():
             str: The path to the merged GeoPackage file.
         """
         # initialize the PA_Processor_Wrapper class
-        response_dir = "wdpa_data"
+        response_dir = os.path.join(self.pa_input_dir, "wdpa_data")
         os.makedirs(response_dir, exist_ok=True)
         # list to store the names of the GeoJSON files
         geojson_filepaths = []
@@ -86,33 +87,33 @@ class WDPAWrapper():
         # print(f"GeoPackage file created: {gpkg}")
         return gpkg
     
-    def rasterize_protected_areas(self, merged_gpkg:str, lulc_dir:str, pa_timeseries_dir:str, pa_to_yearly_rasters:bool=True) -> None:
+    def rasterize_protected_areas(self, merged_gpkg:str, lulc_dir:str, pa_to_yearly_rasters:bool=True) -> None:
         """
         Rasterize the protected areas by year of establishment.
 
         Args:
-            merged_gpkg (str): The path to the merged GeoPackage file.
+            merged_gpkg (str): The file name to the merged GeoPackage file.
             lulc_dir (str): The path to the directory containing the LULC raster data.
-            pa_timeseries_dir (str): The path to the directory where the rasterized protected areas will be saved.
             pa_to_yearly_rasters (bool): Rasterize the protected areas by year of establishment (default is True).
         Returns:
             None
         """
-
         # Change this to false to use PAs from all years.
-        gpkg = os.path.join(self.pa_output_data_dir, "merged_protected_areas.gpkg")
+        gpkg = os.path.join(self.pa_output_data_dir, merged_gpkg)
         raster_output_dir = os.path.join(self.pa_output_dir, "pa_rasters")
         os.makedirs(raster_output_dir, exist_ok=True)
 
-        rp = PARasterizer(gpkg, os.path.join(self.working_dir,self.config.get("lulc_dir")),raster_output_dir)
+        rp = PARasterizer(gpkg, lulc_dir ,raster_output_dir)
         rp.reproject_pa_data(rp.lulc_metadata.crs_info["epsg"],filter_by_year=pa_to_yearly_rasters)
         rp.rasterize_pa_geopackage(rp.lulc_metadata, pa_to_yearly_rasters=True ,keep_intermediate_gpkg=False) 
 
-    def sum_lulc_pa_rasters(self, lulc_path:str="lulc", lulc_with_null_path:str="lulc_temp", pa_path:str="pas_timeseries", lulc_upd_compr_path:str="lulc_pa") -> None:
+    def sum_lulc_pa_rasters(self,input_path:str="data/input",output_path:str="data/output", lulc_path:str="lulc", lulc_with_null_path:str="lulc_temp", pa_path:str="pa_rasters", lulc_upd_compr_path:str="lulc_pa") -> None:
         """
         Sum the LULC and PA raster data.
 
         Args:
+            input_path (str): The path to the input directory.
+            output_path (str): The path to the output directory.
             lulc_path (str): The path to the LULC raster data.
             lulc_with_null_path (str): The path to the LULC raster data with zeros.
             lulc_upd_compr_path (str): The path to the combined LULC and PA raster data.
@@ -121,44 +122,43 @@ class WDPAWrapper():
         Returns:
             None
         """
-        lprs = LulcPaRasterSum(lulc_path, lulc_with_null_path, pa_path, lulc_upd_compr_path)
+
+        lprs = LulcPaRasterSum(input_path,output_path,lulc_path, lulc_with_null_path, pa_path, lulc_upd_compr_path)
         lprs.assign_no_data_values()
         lprs.combine_pa_lulc()
 
-    def compute_affinity(self, impedance_dir:str='impedance_pa', affinity_dir:str='affinity') -> None:
+    def compute_affinity(self, affinity_dir:str='affinity') -> None:
         """
         Compute the affinity between the protected areas.
 
         Args:
-            impedance_dir (str): The path to the directory containing the impedance raster data.
             affinity_dir (str): The path to the directory where the affinity data will be saved.
 
         Returns:
             None
         """
+        os.makedirs(affinity_dir, exist_ok=True)
+        impedance_dir = os.path.join(self.working_dir, self.config["impedance_dir"])
+        
         lae = LandscapeAffinityEstimator(impedance_dir, affinity_dir)
         lae.compute_affinity(os.listdir(impedance_dir))
 
 
-    def reclassify_raster_with_impedance(self, input_dir:str='lulc_pa', output_folder:str='impedance_pa', reclass_table:str="reclassification.csv") -> None:
+    def reclassify_raster_with_impedance(self) -> None:
         """
         Reclassify the raster data with impedance values.
-
-        Args:
-            input_dir (str): The path to the input directory containing the raster data.
-            output_folder (str): The path to the output directory where the reclassified raster data will be saved.
-            reclass_table (str): The path to the reclassification table.
         
         Returns:
             None
         """
-        UpdateLandImpedance(input_dir, output_folder, reclass_table)
+        uli = UpdateLandImpedance(self.config)
+        uli.update_impedance()
 
 
 # Example usage
 if __name__ == "__main__":
     working_dir = os.getcwd()
     config_path = os.path.join(working_dir, "config", "config.yaml")
-    wp = WDPAWrapper(working_dir,config_path)
+    wp = WDPAWrapper(working_dir,config_path, verbose=True)
     country_codes = wp.get_lulc_country_codes()
     print(f"Country protected areas to fetch: {country_codes}")
