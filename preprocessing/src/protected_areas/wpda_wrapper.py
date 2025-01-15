@@ -13,8 +13,8 @@ from utils import load_yaml
 
 class WDPAWrapper():
     """
-    This class is responsible for preprocessing the input data for the ingesting protected areas data from WDPA API.
-    The input LULC raster bounding box is extracted and used to fetch the unique ISO 3166-1 alpha-3 country code from the ohsome API.
+    This class is a wrapper to abstract the preprocessing the input data for the ingesting protected areas data from WDPA API. \n
+    It contains methods, which call a series of functions to that fetch and process the protected areas data, rasterize the protected areas, sum the LULC and PA rasters, reclassify the raster data with impedance values, and compute the affinity between the protected areas.
     """
 
     def __init__(self, working_dir:str,config_path:str, verbose:bool) -> None:

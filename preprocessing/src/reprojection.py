@@ -18,7 +18,6 @@ class RasterTransform:
         nodata = None
 
     def get_raster_info(self):
-
         raster = gdal.Open(self.raster_path)
         if raster is None:
             raise FileNotFoundError("Input raster is missing.")
@@ -188,13 +187,12 @@ class RasterTransform:
 
 
 
-    def bbox_to_WGS84(self, print_details=False):
+    def bbox_to_WGS84(self, print_details=False) -> tuple:
         """
         This method calculates the bounding box coordinates of the raster in WGS84.
 
         Returns:
-        - cell_size: The spatial resolution of the raster.
-        - x_min_after, y_min_after, x_max_after, y_max_after: Transformed coordinates in WGS84.
+        Tuple of four values: Transformed coordinates in WGS84 (x_min_after, y_min_after, x_max_after, y_max_after)
         """
 
         self.transform_and_print(print_details)  # transform coordinates and print transformed values

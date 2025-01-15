@@ -115,21 +115,41 @@ def find_stressor_params(config_dict:dict, search_key:str):
                     return stressor_params
         return None 
 
-def get_lulc_template(config:dict,year:int):
+def get_lulc_template(working_dir:str,config:dict, year:int) -> str:
     """
     Gets the LULC template from the configuration file and returns the path to the LULC raster dataset for the input year.
 
     Args:
+        working_dir (str): The working directory.
         config (dict): The configuration dictionary.
         year (int): The year for which the LULC template is required.
     
     Returns:
-        lulc (str): The path to the LULC raster dataset.
+        lulc (str): The relative (from the working directory) filepath to the LULC raster dataset for the input year.
     """
     lulc_template = config.get('lulc', None)
     if lulc_template is None:
         raise("LULC template is null or not found in the configuration file.")
     else:
         # NOTE: For now we are using the first year in the list of years
-        lulc = lulc_template.format(year=year)
-        return lulc
+        return os.path.normpath(os.path.join(working_dir, lulc_template.format(year=year)))
+    
+def read_years_from_config(config:dict) -> list[int]:
+    """
+    Reads the years from the configuration file and returns a list of integer years.
+    
+    Args:
+        config (dict): The configuration dictionary.
+    
+    Returns:
+        list[int]: A list of years.
+    """
+    years = config.get('year', None)
+    if years is None:
+        raise TypeError("Year variable is null or not found in the configuration file.")
+    elif isinstance(years, int):
+        # cast to list
+        return [years]
+    else:
+        # cast to list
+        return [int(year) for year in years]
