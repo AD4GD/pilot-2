@@ -96,7 +96,7 @@ class OSMGeojsonToGpkg():
                 ], check=True, capture_output=True, text=True) # to show log
         print(f"Initialized merged GeoPackage with CRS EPSG:{self.target_epsg} from {layer_name}.")
 
-        for str(gpkg_file) in self.gpkg_files[1:]:  # skip the first file because it's already added
+        for gpkg_file in self.gpkg_files[1:]:  # skip the first file because it's already added
             layer_name = gpkg_file.split(f"_{year}")[0]
             gpkg_file = os.path.join(self.gpkg_dir, gpkg_file)
             # run appending separate geopackages to empty merged geopackage (update if layers were previously written)

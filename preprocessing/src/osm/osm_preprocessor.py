@@ -13,11 +13,12 @@ class OSMPreprocessor():
     OSM (OpenStreetMap) Pre-Processor class to fetch OSM data for a given set of years and a bounding box.
     Currently only fetches for one year of OSM data.
     """
-    def __init__(self, config:dict, output_dir:str, verbose:bool, years:list[int]) -> None:
+    def __init__(self, config:dict, lulc_dir:str, output_dir:str, verbose:bool, years:list[int]) -> None:
         """
         Initialize the OSM Pre-Processor class with the configuration file and output directory.
 
         Args:
+            lulc_dir (str): the directory containing the LULC files
             config (dict): The configuration.yaml loaded as a dictionary
             output_dir (str): the output directory to save the intermediate files
             verbose (bool): verbose output
@@ -27,7 +28,7 @@ class OSMPreprocessor():
         self.years = years
 
         # create a dictionary of LULC files and corresponding years
-        lulc_series = {get_lulc_template(self.config, year):year for year in self.years}
+        lulc_series = {get_lulc_template(lulc_dir,self.config, year):year for year in self.years}
         
         # We can use the first raster to get the bounding box, as all rasters should have the same extent
         lulc = list(lulc_series.keys())[0]
@@ -38,6 +39,8 @@ class OSMPreprocessor():
             print(f"Bounding box for the OSM data is to be retrieved from the raster: {lulc}")
 
         self.bbox = RasterTransform(raster_path=lulc).bbox_to_WGS84(print_details=verbose)
+        # convert the bounding box to a string
+        self.bbox = ",".join([str(coord) for coord in self.bbox])
 
     def fetch_osm_data(self,queries:dict, year:int , overpass_url:str = "https://overpass-api.de/api/interpreter") -> list:
         """

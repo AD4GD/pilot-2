@@ -151,14 +151,13 @@ class RasterTransform:
             always_xy=True # to ensure that coordinates are always treated as (x, y).
         )
         
-
-        x_min_after, y_min_after = transform_cart_to_geog.transform(self.x_min_before, self.y_min_before)
-        x_max_after, y_max_after = transform_cart_to_geog.transform(self.x_max_before, self.y_max_before)
+        y_min_after,x_min_after = transform_cart_to_geog.transform(self.x_min_before, self.y_min_before)
+        y_max_after,x_max_after = transform_cart_to_geog.transform(self.x_max_before, self.y_max_before)
 
         return x_min_after, y_min_after, x_max_after, y_max_after
 
     # run transformation of coordinates
-    def transform_and_print(self, print_details=True):
+    def transform_and_print(self, print_details=True) -> tuple:
         """
         Transforms coordinates and prints spatial resolution and bounding box details.
         """
@@ -185,7 +184,7 @@ class RasterTransform:
             print(f"Spatial resolution of the raster: {cell_size}")
             print(f"Bounding box coordinates in WGS84: {x_min_after}, {y_min_after}, {x_max_after}, {y_max_after}")
 
-
+        return x_min_after, y_min_after, x_max_after, y_max_after
 
     def bbox_to_WGS84(self, print_details=False) -> tuple:
         """
@@ -196,8 +195,7 @@ class RasterTransform:
         """
 
         self.transform_and_print(print_details)  # transform coordinates and print transformed values
-        x_min_after, y_min_after, x_max_after, y_max_after = self.transform_coordinates()
-        return x_min_after, y_min_after, x_max_after, y_max_after
+        return self.transform_and_print(print_details)
     
 # Example usage
 # raster_file = os.path.join(input_dir,'lulc.tif')

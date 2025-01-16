@@ -34,10 +34,11 @@ class LULCEnrichmentWrapper():
         self.working_dir = working_dir
         self.vector_dir = self.config.get('vector_dir')
         self.output_dir = self.config.get('output_dir')
+        self.lulc_dir = os.path.join(self.working_dir,self.config.get('lulc_dir'))
         self.years = read_years_from_config(self.config)
 
         # create a dict of LULC files for each year
-        self.lulc_filepaths = {year:get_lulc_template(self.config, year) for year in self.years}
+        self.lulc_filepaths = {year:get_lulc_template(self.lulc_dir,self.config, year) for year in self.years}
 
     def prepare_lulc_osm_data(self, years:list[int]):
         """
@@ -218,7 +219,7 @@ class LULCEnrichmentWrapper():
 
         #group attributes by first suffix (e.g. primary, secondary, tertiary) split by '_'
         if groupby_roads:
-            road_types = list(set([road_type.split('_')[0] for road_type in road_types]))
+            road_types = list(set([road_type.split('_')[0] for road_type in road_types if road_type is not None]))
             print(f"Road types to be rasterized: {road_types}")
         
         # for each road type, rasterize the roads

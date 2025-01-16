@@ -3,11 +3,9 @@ from typing_extensions import Annotated
 from rich.console import Console
 from rich import print
 import os
-# from third_notebook import MyPreprocessor
 from protected_areas.wpda_wrapper import WDPAWrapper
 from osm.osm_wrapper import OSMWrapper
 from enrichment.lulc_enrichment_wrapper import LULCEnrichmentWrapper
-from utils import read_years_from_config
 err_console = Console(stderr=True, style="bold red")
 
 app = typer.Typer(
@@ -40,7 +38,7 @@ def process_wdpa(
     """
     Preprocess protected areas data for each year of lulc data
     Example usage: python main.py process-wdpa --config-path ./config/config.yaml --force --skip-fetch --verbose
-
+    
     Args:
         config_path (str): The path to the configuration file.
         auto_confirm (bool): Auto confirm all prompts.
@@ -93,14 +91,14 @@ def process_wdpa(
 
 @app.command("process-osm")
 def process_osm(
-    config_path:Annotated[str, typer.Argument(...)] = "./config.yaml",
+    config_path: Annotated[str, typer.Option(..., help="Path to the configuration file")] = "./config/config.yaml",
     skip_fetch: Annotated[bool, typer.Option("--skip-fetch", "-s", help="Skip fetching osm data")] = False,
     delete_intermediate_files: Annotated[bool, typer.Option("--del-temp", "-dt", help="Delete intermediate GeoJSON & GPKG files")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False
     ):
     """
     Check if config exists
-    Example usage: python main.py --config-path ./config.yaml
+    Example usage: python main.py process-osm --config-path ./config/config.yaml --verbose --skip-fetch --del-temp
 
     Args:
         config_path (str): The path to the configuration file.
@@ -119,8 +117,9 @@ def process_osm(
                 if year != "all":
                     # repalce the years list with the selected year
                     osm.years = [year]
-                # fetch OSM data for the selected years
-            osm.osm_to_geojson(osm.years)
+
+        # fetch OSM data for the selected years
+        osm.osm_to_geojson(osm.years, skip_fetch)
 
         # STEP 2: Convert OSM data to merged GeoPackage (creates intermediate GeoJSON files for each year)
         osm.osm_to_merged_gpkg(osm.years)
@@ -134,15 +133,15 @@ def process_osm(
         raise typer.Exit(code=1)
  
 
-@app.command("process-lulc-enrichment")
-def process_lulc_enrichment(
-    config_path:Annotated[str, typer.Argument(...)] = "./config.yaml",
+@app.command("enrich-lulc")
+def enrich_lulc(
+    config_path: Annotated[str, typer.Option(..., help="Path to the configuration file")] = "./config/config.yaml",
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
     save_osm_stressors: Annotated[bool, typer.Option("--save-osm-stressors", "-s", help="Save OSM stressors to file")] = False
     ):
     """
     Check if config exists
-    Example usage: python main.py --config-path ./config.yaml --verbose --save-osm-stressors
+    Example usage: python main.py enrich-lulc --config-path ./config/config.yaml --verbose --save-osm-stressors
 
     Args:
         config_path (str): The path to the configuration file.
@@ -170,11 +169,12 @@ def process_lulc_enrichment(
         raise typer.Exit(code=1)
 
 #Test command
-@app.command()
+@app.command("test")
 def init(firstname: str, surname: str, formal: bool = False):
     """
     Example usage 
     python main.py name surname --formal
+    typer run main.py name surname --formal
     """
     if formal:
         typer.secho(f"Hello Mr. {firstname} {surname}", fg=typer.colors.GREEN, bg=typer.colors.YELLOW)
