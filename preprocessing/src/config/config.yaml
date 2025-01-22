@@ -19,6 +19,19 @@ impedance: 'lulc_descr_esa.csv' # to fetch table with LULC types mapping with im
 
 # vector data
 osm_data: 'osm_merged_{year}.gpkg' # derived from Open Street Map
+osm_roads: 
+    highway: [way,"~",motorway|trunk|primary|secondary|tertiary]
+osm_railways: 
+    railway: [way,"~",rail|light_rail|narrow_gauge|tram|preserved]
+osm_waterways: 
+    waterway: [way,"~",river|canal|flowline|tidal_channel]
+    water: [way,"~",river|canal]
+osm_waterbodies: 
+    natural: [nwr,"=",water]
+    water: [nwr,"~",cenote|lagoon|lake|oxbow|rapids|river|stream|stream_pool|canal|harbour|pond|reservoir|wastewater|tidal|natural]
+    landuse: [nwr,"=",reservoir]
+    waterway: [nwr,"=",riverbank]
+
 user_vector: null # derived from other sources and provided by users ('null' by default)
 
 ## PATHS TO DIRECTORIES

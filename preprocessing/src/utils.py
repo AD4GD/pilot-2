@@ -65,7 +65,7 @@ def extract_layer_names(gpkg_path:str) -> list:
     return layers
 
 
-def extract_attribute_values(vector_gpkg:str, layer_name:str=None, attribute:str="highway") -> list:
+def extract_attribute_values(vector_gpkg:str, layer_name:str, attribute:str) -> list:
     """
     Extract all unique attribute values from a vector GeoPackage file.
     
@@ -94,7 +94,8 @@ def extract_attribute_values(vector_gpkg:str, layer_name:str=None, attribute:str
     unique_values = set()
     while values:
         value = values.GetField(attribute)
-        unique_values.add(value)
+        if value is not None:
+            unique_values.add(value)
         values = layer.GetNextFeature()
 
     return unique_values

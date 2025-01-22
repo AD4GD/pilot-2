@@ -3,6 +3,7 @@ from osm.osm_preprocessor import OSMPreprocessor
 from osm.osm_geojson_to_gpkg import OSMGeojsonToGpkg
 from utils import load_yaml, read_years_from_config
 import shutil
+import timing
 
 class OSMWrapper():
 
@@ -103,7 +104,7 @@ class OSMWrapper():
 
 if __name__ == "__main__":
     osm = OSMWrapper(os.getcwd(), "./config/config.yaml", verbose=True)
-    osm.osm_to_geojson(osm.years, skip_fetch=True)
+    osm.osm_to_geojson(osm.years, skip_fetch=False)
     osm.osm_to_merged_gpkg(osm.years)
     osm.delete_temp_files(True, True)
     print("OSM data processing complete.")

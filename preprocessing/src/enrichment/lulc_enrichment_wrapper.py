@@ -2,6 +2,7 @@ import numpy as np
 
 # auxiliary libraries
 import subprocess
+from subprocess import Popen, PIPE
 import yaml
 import os
 from osgeo import ogr, gdal
@@ -20,13 +21,13 @@ class LULCEnrichmentWrapper():
     then rasterizes vector data and merges both rasters into a single raster dataset.
     """
     
-    def __init__(self, config_path:str, working_dir:str, verbose:bool) -> None:
+    def __init__(self, working_dir:str,config_path:str, verbose:bool) -> None:
         """
         Initializes the LULC enrichment processor.
 
         Args:
-            config_path (str): path to the configuration file
             working_dir (str): path to the current/working directory
+            config_path (str): path to the configuration file
             verbose (bool): verbose output
         """
         self.config = load_yaml(config_path)
@@ -173,25 +174,34 @@ class LULCEnrichmentWrapper():
             output_gpkg (str): path to the output GeoPackage file
 
         """
-        # build SQL statement to extract features
-        sql_statement = f""" "SELECT * FROM {layer_name} WHERE {attribute} LIKE '%{value}%' " """
-        # define ogr2ogr command
-        ogr2ogr_cmd = [
-            'ogr2ogr',
-            '-f', 'GPKG',
-            output_gpkg,
-            vector_gpkg,
-            '-dialect', 'SQLite',
-            '-sql', sql_statement
-        ]
+        print("Layer to access:", layer_name)
+        ogr_command = f"""
+            ogr2ogr -f GPKG {output_gpkg} {vector_gpkg} -sql "SELECT * FROM {layer_name} WHERE {attribute} LIKE '%{value}%'"
+        """
+        # DEBUG: print the command to extract the subtypes of stressors from the vector dataset
         if self.verbose:
-            print(f"Executing the following command to extract features:\n{ogr2ogr_cmd}")
+            print(f"The following command to extract features:\n{ogr_command}")
+        proc = Popen(ogr_command, shell=True, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = proc.communicate()
+        if proc.returncode != 0:
+            raise RuntimeError(stderr)
+        
+        print(f"New layer saved to {output_gpkg}")
 
-        # execute ogr2ogr command through subprocess
-        subprocess.run(ogr2ogr_cmd, check=True)
-  
-        if self.verbose:
-            print(f"New layer saved to {output_gpkg}")
+        # TODO - probably to move from PIPE to subprocess.run as takes more time
+
+        # # define ogr2ogr command
+        # ogr2ogr_cmd = [
+        #     'ogr2ogr',
+        #     '-f', 'GPKG',
+        #     output_gpkg,
+        #     vector_gpkg,
+        #     '-dialect', 'SQLite',
+        #     '-sql', sql_statement
+        # ]
+
+        # # execute ogr2ogr command through subprocess
+        # subprocess.run(ogr2ogr_cmd, check=True)
         
         return output_gpkg
    
@@ -216,6 +226,12 @@ class LULCEnrichmentWrapper():
         road_layer_name = 'roads'
         road_types = extract_attribute_values(roads_gpkg, road_layer_name, attribute='highway')
         print(f"Road types found in the input vector file: {road_types}")
+
+        # extract the road types from the config file that match the road types
+        config_road_types = self.config.get('osm_road', None).get('highway', None)[2].split("|")
+        print(f"Road types found in the configuration file: {config_road_types}")
+        # filter road types based on the config file
+        road_types = [road_type for road_type in road_types if any(attr in road_type for attr in config_road_types)]
 
         #group attributes by first suffix (e.g. primary, secondary, tertiary) split by '_'
         if groupby_roads:
@@ -259,13 +275,12 @@ class LULCEnrichmentWrapper():
         
         # rasterize roads and railways from buffered geometries
         osm_impedance_stressor_types = self.rasterize_vector_roads(year, self.lp.raster_metadata, self.vp.vector_roads_buffered, burn_value=self.lp.lulc_codes["lulc_road"], groupby_roads=True)
-        self.rasterize_vector_layer(year, self.lp.raster_metadata,self.vp.vector_railways_buffered, railways, nodata_value=0, burn_value=self.lp.lulc_codes["lulc_railway"])
+        self.rasterize_vector_layer(self.lp.raster_metadata,self.vp.vector_railways_buffered, railways, nodata_value=0, burn_value=self.lp.lulc_codes["lulc_railway"])
         # add railway to stressors (because there is no railway type processing we use None)
         osm_impedance_stressor_types['railways'] = None
 
         self.rasterize_vector_layer(self.lp.raster_metadata,self.vp.vector_refine, waterbodies, layer_name='waterbodies', nodata_value=0, burn_value=self.lp.lulc_codes["lulc_water"]) # read from the corresponding layer
         self.rasterize_vector_layer(self.lp.raster_metadata,self.vp.vector_refine, waterways, layer_name='waterways', nodata_value=0, burn_value=self.lp.lulc_codes["lulc_water"]) # read from the corresponding layer
-
 
         # write osm_stressors to file
         if save_osm_stressors == True:
@@ -281,7 +296,6 @@ class LULCEnrichmentWrapper():
         Rasterize a vector layer to a raster dataset.
 
         Args:
-            year (int): year of the data to process
             lulc (Raster_Properites): object containing raster properties
             vector_path (str): path to the vector dataset
             output_path (str): path to the output raster dataset
@@ -433,3 +447,12 @@ class LULCEnrichmentWrapper():
         base_data[np.isnan(base_data)] = nodata_value
         
         return base_data, base_ds, nodata_value
+    
+if __name__ == "__main__":
+    #
+    lew = LULCEnrichmentWrapper(os.getcwd(), "./config/config.yaml", verbose=True)
+    # prepare and merge LULC and OSM data
+    lew.prepare_lulc_osm_data(lew.years)
+    # merge LULC and OSM data
+    lew.merge_lulc_osm_data(lew.years, save_osm_stressors=True)
+    print("LULC and OSM data processing complete.")

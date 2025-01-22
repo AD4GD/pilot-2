@@ -6,6 +6,8 @@ import os
 from protected_areas.wpda_wrapper import WDPAWrapper
 from osm.osm_wrapper import OSMWrapper
 from enrichment.lulc_enrichment_wrapper import LULCEnrichmentWrapper
+from impedance.impedance_wrapper import ImpedanceWrapper
+
 err_console = Console(stderr=True, style="bold red")
 
 app = typer.Typer(
@@ -22,7 +24,7 @@ def check_file_exists(filePath:str):
     """
     if os.path.exists(filePath):
         fileName = os.path.basename(filePath).split(".")[0]
-        print(f"[green] {fileName} File found! [/green] :thumbsup:")
+        print(f"[green] {fileName} File found! [/green] :white_check_mark:")
     else:
         err_console.print(f" File not found at {filePath}")
         raise typer.Exit(code=1)
@@ -30,14 +32,14 @@ def check_file_exists(filePath:str):
 #NOTE only prompt user to confirm using APIs.
 @app.command("process-wdpa")
 def process_wdpa(
-    config_path: Annotated[str, typer.Option(..., help="Path to the configuration file")] = "./config/config.yaml",
+    config_dir: Annotated[str, typer.Option(..., help="directory to the configuration file")] = "./config",
     auto_confirm: Annotated[bool, typer.Option("--force", "-f", help="Auto confirm all prompts")] = False,
     skip_fetch: Annotated[bool, typer.Option("--skip-fetch", "-s", help="Skip fetching protected areas")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
 ):
     """
     Preprocess protected areas data for each year of lulc data
-    Example usage: python main.py process-wdpa --config-path ./config/config.yaml --force --skip-fetch --verbose
+    Example usage: python main.py process-wdpa --config-dir ./config --force --skip-fetch --verbose
     
     Args:
         config_path (str): The path to the configuration file.
@@ -45,7 +47,7 @@ def process_wdpa(
         skip_fetch (bool): Skip fetching protected areas data from the API.
         verbose (bool): Verbose mode.
     """
-
+    config_path = os.path.join(config_dir, "config.yaml")
     check_file_exists(config_path)
 
     try:
@@ -62,7 +64,7 @@ def process_wdpa(
         if auto_confirm == False:
             confirm = typer.confirm("Type 'yes' or 'y' to confirm API fetch for the above countries?")
             if not confirm:
-                print("Exiting...")
+                err_console.print("Exiting...")
                 raise typer.Exit(code=1)
         
         # # STEP 2.0: Fetch and process the protected areas for the selected countries
@@ -91,19 +93,20 @@ def process_wdpa(
 
 @app.command("process-osm")
 def process_osm(
-    config_path: Annotated[str, typer.Option(..., help="Path to the configuration file")] = "./config/config.yaml",
+    config_dir: Annotated[str, typer.Option(..., help="directory to the configuration file")] = "./config",
     skip_fetch: Annotated[bool, typer.Option("--skip-fetch", "-s", help="Skip fetching osm data")] = False,
     delete_intermediate_files: Annotated[bool, typer.Option("--del-temp", "-dt", help="Delete intermediate GeoJSON & GPKG files")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False
     ):
     """
     Check if config exists
-    Example usage: python main.py process-osm --config-path ./config/config.yaml --verbose --skip-fetch --del-temp
+    Example usage: python main.py process-osm --config-dir ./config --verbose --skip-fetch --del-temp
 
     Args:
         config_path (str): The path to the configuration file.
         verbose (bool): Verbose mode.
     """
+    config_path = os.path.join(config_dir, "config.yaml")
     check_file_exists(config_path)
     try:
         working_dir = os.getcwd()
@@ -135,19 +138,20 @@ def process_osm(
 
 @app.command("enrich-lulc")
 def enrich_lulc(
-    config_path: Annotated[str, typer.Option(..., help="Path to the configuration file")] = "./config/config.yaml",
+    config_dir: Annotated[str, typer.Option(..., help="directory to the configuration file")] = "./config",
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
     save_osm_stressors: Annotated[bool, typer.Option("--save-osm-stressors", "-s", help="Save OSM stressors to file")] = False
     ):
     """
     Check if config exists
-    Example usage: python main.py enrich-lulc --config-path ./config/config.yaml --verbose --save-osm-stressors
+    Example usage: python main.py enrich-lulc --config-dir ./config --verbose --save-osm-stressors
 
     Args:
         config_path (str): The path to the configuration file.
         verbose (bool): Verbose mode
         save_osm_stressors (bool): Save OSM stressors to file
     """
+    config_path = os.path.join(config_dir, "config.yaml")
     check_file_exists(config_path)
     try:
         lew = LULCEnrichmentWrapper(config_path, os.getcwd(), verbose)
@@ -156,7 +160,7 @@ def enrich_lulc(
         if len(lew.years) > 1:
             year = typer.prompt("Type 'all' or enter the year to use for the LULC enrichment from the following years: ", lew.years)
             if year != "all":
-                # repalce the years list with the selected year
+                # replace the years list with the selected year
                 lew.years = [year]
 
         # prepare and merge LULC and OSM data
@@ -168,13 +172,81 @@ def enrich_lulc(
         err_console.print(f"Error: {e}")
         raise typer.Exit(code=1)
 
+@app.command("recalc-impedance")
+def enrich_lulc(
+    decline_type: Annotated[str, typer.Option("--decline-type", "-dt", help="Type of decline to use for impedance calculation. Use either exp_decline OR prop_decline ")] = "exp_decline",
+    lambda_decay: Annotated[int, typer.Option("--lambda-decay", "-ld", help="Lambda decay value for impedance calculation")] = 500,
+    k_value: Annotated[int, typer.Option("--k-value", "-k", help="K value for impedance calculation")] = 500,
+    config_dir: Annotated[str, typer.Option(..., help="directory to the configuration file")] = "./config",
+    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
+    del_stressors: Annotated[bool, typer.Option("--save-osm-stressors", "-s", help="Delete OSM stressors")] = False
+    ):
+    """
+    Check if config exists
+    Example usage: python main.py recalc-impedance" --config-dir ./config --verbose --save-osm-stressors
+
+    Args:
+
+        config_dir (str): The path to the configuration directory.
+        verbose (bool): Verbose mode
+        save_osm_stressors (bool): Save OSM stressors to file
+    """
+    stressor_yaml_path = os.path.join(config_dir,"stressors.yaml")
+    if not os.path.exists(stressor_yaml_path):
+        raise FileNotFoundError("The stressors.yaml file is not found. Please add the file to the config directory.")
+    
+    iw = ImpedanceWrapper( 
+        types = None,
+        decline_type = decline_type,
+        lambda_decay = lambda_decay,
+        k_value = k_value,
+        config_path= os.path.join(config_dir,"config.yaml"),
+        config_impedance_path= os.path.join(config_dir,"config_impedance.yaml"),
+        verbose=verbose
+    )
+
+    # prompt user to use all years or a specific year
+    if len(iw.years) > 1:
+        year = typer.prompt("Type 'all' or enter the year to use for the LULC enrichment from the following years: ", iw.years)
+        if year != "all":
+            # replace the years list with the selected year
+            iw.years = [year]
+
+    for year in iw.years:
+        # 1. Process the impedance configuration (initial setup + lulc & osm stressors)
+        # e.g. impedance_stressors = {'primary': '/data/data/output/roads_primary_2018.tif'}
+        impedance_stressors = iw.process_impedance_config(year)
+
+    #2. Prompt user to update the configuration file
+    typer.secho("Please check/update the configuration file for impedance dataset (config_impedance.yaml):", fg=typer.colors.RED)
+
+    # 2.1. Or validate after manual update 
+    is_valid = iw.validate_impedance_config(impedance_stressors)
+
+    if not is_valid:
+        raise ValueError("The configuration file is not valid. Please update the configuration file.")
+    
+    for year in iw.years:
+        # 3.  Get the maximum value of the impedance raster dataset
+        impedance_ds, impedance_max = iw.get_impedance_max_value(year)
+
+        #3.0 Calculate impedance
+        max_result_tif = iw.calculate_impedance(impedance_stressors,impedance_ds,impedance_max)
+        if verbose:
+            typer.secho(f"max_result_tif saved to: {max_result_tif}", fg=typer.colors.GREEN)
+
+    # delete temporary impedance stressors.yaml
+    if del_stressors:
+        os.remove(stressor_yaml_path)
+        typer.secho("Temporary OSM stressor file has been deleted", fg=typer.colors.RED)
+
 #Test command
 @app.command("test")
 def init(firstname: str, surname: str, formal: bool = False):
     """
     Example usage 
-    python main.py name surname --formal
-    typer run main.py name surname --formal
+    python main.py test name surname --formal
+    typer run main.py test name surname --formal
     """
     if formal:
         typer.secho(f"Hello Mr. {firstname} {surname}", fg=typer.colors.GREEN, bg=typer.colors.YELLOW)
@@ -182,6 +254,8 @@ def init(firstname: str, surname: str, formal: bool = False):
         typer.echo(f"Hello {firstname} {surname}")
 
     err_console.print("This is an error message")
+
+
 
 if __name__ == "__main__":
     app()

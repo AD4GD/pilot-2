@@ -7,6 +7,7 @@ import json
 import subprocess
 import warnings
 from utils import get_lulc_template
+import timing
 
 class OSMPreprocessor():
     """
@@ -26,6 +27,7 @@ class OSMPreprocessor():
         self.config = config
         self.output_dir = output_dir
         self.years = years
+        self.verbose = verbose
 
         # create a dictionary of LULC files and corresponding years
         lulc_series = {get_lulc_template(lulc_dir,self.config, year):year for year in self.years}
@@ -33,12 +35,12 @@ class OSMPreprocessor():
         # We can use the first raster to get the bounding box, as all rasters should have the same extent
         lulc = list(lulc_series.keys())[0]
 
-        if verbose:
+        if self.verbose:
             print(f"OSM data is to be retrieved for {self.years} years.")
             print ("-" * 30)
             print(f"Bounding box for the OSM data is to be retrieved from the raster: {lulc}")
 
-        self.bbox = RasterTransform(raster_path=lulc).bbox_to_WGS84(print_details=verbose)
+        self.bbox = RasterTransform(raster_path=lulc).bbox_to_WGS84(print_details=self.verbose)
         # convert the bounding box to a string
         self.bbox = ",".join([str(coord) for coord in self.bbox])
 
@@ -59,9 +61,17 @@ class OSMPreprocessor():
 
         # iterate over the queries and execute them
         for query_name, query in queries.items():
+            if self.verbose:
+                print(f"Fetching OSM data for {query_name} in the {year} year.")
+                timing.start()
+  
             response = requests.get(overpass_url, params={'data': query})
-            print(response)
-                
+
+            if self.verbose:
+                timing.stop()
+
+            #TODO what needs to be verbose here?
+
             # if response is successful
             if response.status_code == 200:
                 print(f"Query to fetch OSM data for {query_name} in the {year} year has been successful.")
@@ -94,7 +104,32 @@ class OSMPreprocessor():
                 print ("-" * 30)
 
         return intermediate_jsons
+    
 
+    def overpass_query_filter(self,osm_tag_category:str, exact_match:bool) -> str:
+        """
+        A function to build the filter section of the Overpass API query for a given osm_tag_category.
+
+        Args:
+            osm_tag_category (str): the osm_tag_category to filter (the relevant key in the config file)
+            exact_match (bool): whether to use the exclusion symbols (^ and $) in the filter query to match the exact value
+        Returns:
+            str: the filter query
+        """
+
+        filter_query = ""
+        attributes = dict(self.config.get(osm_tag_category))
+        for osm_tag,value in attributes.items():
+            attribute_type = value[0]
+            operator = value[1]
+            attribute_value = value[2]
+            if exact_match and operator == "~":
+                filter_query += f'{attribute_type}["{osm_tag}"{operator}"^({attribute_value})$"];\n'
+            else:
+                filter_query += f'{attribute_type}["{osm_tag}"{operator}"{attribute_value}"];\n'
+        return filter_query
+    
+ 
     def overpass_query_builder(self, year:int, bbox:str) -> dict[str, str]:
         """
         A function to build the queries for Overpass API for a given year and bounding box, for roads, railways, waterways, and waterbodies.
@@ -106,83 +141,69 @@ class OSMPreprocessor():
         Returns:
             dict: a dictionary of queries for roads, railways, waterways, and waterbodies
         """
-        #TODO: The data limit is 1GB. Could try split the query into smaller parts (bounding boxes) and run them separately.
-        #NOTE: the issue with the above is that you might get IP blocked by the server. So, need to be careful with this.
-        query_roads = f"""
-        [out:json]
-        [maxsize:1073741824]
-        [timeout:9000]
-        [date:"{year}-12-31T23:59:59Z"]
-        [bbox:{bbox}];
-        way["highway"~"(motorway|trunk|primary|secondary|tertiary)"];
-        /* also includes 'motorway_link',  'trunk_link' etc. because they also restrict habitat connectivity */
-        (._;>;);
-        out body;
-        """
-        # '{' characters must be doubled in Python f-string (except for {bbox} because it is a variable)
-        # to include statement on paved surfaces use: ["surface"~"(paved|asphalt|concrete|paving_stones|sett|unhewn_cobblestone|cobblestone|bricks|metal|wood)"];
-        # it is important to include only paved roads it is important to list all values above, not only 'paved'*/
-        # BUT! : 'paved' tag seems to be missing in a lot of features at timestamps from 2010s
-        # 'residential' roads are not fetched as these areas are already identified in land-use/land-cover data as urban or residential ones
-        # "~" extracts all tags containing this text, for example 'motorway_link'
-        
-        query_railways = f"""
-        [out:json]
-        [maxsize:1073741824]
-        [timeout:9000]
-        [date:"{year}-12-31T23:59:59Z"]
-        [bbox:{bbox}];
-        way["railway"~"(rail|light_rail|narrow_gauge|tram|preserved)"];
-        (._;>;);
-        out;
-        """
-        
-        # way["railway"];  # to include features if 'railway' key is found (any value)
-        # to include features with values filtered by key. 
-        # This statement also includes 'monorail' which are not obstacles for species migration, but these features are extremely rare. Therefore, it was decided not to overcomplicate the query.
-        # 31/07/2024 - added filtering on 'preserved' railway during the verification by UKCEH LULC dataset (some railways are marked as 'preserved at older timestamps and 'rail' in newer ones).
-    
-        query_waterways = f"""
-        [out:json]
-        [maxsize:1073741824]
-        [timeout:9000]
-        [date:"{year}-12-31T23:59:59Z"]
-        [bbox:{bbox}];
-        (
-        way["waterway"~"^(river|canal|flowline|tidal_channel)$"];
-        way["water"~"^(river|canal)$"];
-        );
-        /* ^ and $ symbols to exclude 'riverbank' and 'derelict_canal'*/
-        /*UPD - second line is added in case if some older features are missing 'way' tag*/
-        (._;>;);
-        out;
-        """
 
-        # Query to bring water features with deprecated tags
-        query_waterbodies = f"""
-        [out:json]
-        [maxsize:1073741824]
-        [timeout:9000]
-        [date:"{year}-12-31T23:59:59Z"]
-        [bbox:{bbox}];
-        (
-        nwr["natural"="water"];
-        nwr["water"~"^(cenote|lagoon|lake|oxbow|rapids|river|stream|stream_pool|canal|harbour|pond|reservoir|wastewater|tidal|natural)$"];
-        nwr["landuse"="reservoir"];
-        nwr["waterway"="riverbank"];
-        /*UPD - second filter was added to catch other water features at all timestamps*/
-        /*UPD - third and fourth filters were added to catch other water features at older timestamps*/
-        /*it is more reliable to query nodes, ways and relations altogether ('nwr') to fetch the complete polygon spatial features*/
-        );
-        (._;>;);
-        out;
-        """
-        
-        # to include small waterways use way["waterway"~"(^river$|^canal$|flowline|tidal_channel|stream|ditch|drain)"]
+        # dictionary of queries with the keys as the OSM tag categories and the values as the queries (only comments are included in initialisation)
+        query_dict =  {
+        "roads": f"""/* also includes 'motorway_link',  'trunk_link' etc. because they also restrict habitat connectivity */""", 
+        "railways":f"""/* to include historical railways*/""", 
+        "waterways":f"""
+            /* ^ and $ symbols to exclude 'riverbank' and 'derelict_canal'*/ 
+            /*second line is added in case if some older features are missing 'way' tag*/
+            """, 
+        "waterbodies":f"""
+            /*second filter was added to catch other water features at all timestamps*/
+            /*third and fourth filters were added to catch other water features at older timestamps*/
+            /*it is more reliable to query nodes, ways and relations altogether ('nwr') to fetch the complete polygon spatial features*/
+            """
+        }
 
-        # merge queries into dictonary
-        # to include all queries
-        return {"roads":query_roads, "railways":query_railways, "waterways":query_waterways, "waterbodies":query_waterbodies}
+        for query_key,comments in query_dict.items():
+            exact_match = False
+            osm_tag_category = f"osm_{query_key}"
+            if osm_tag_category not in self.config:
+                raise TypeError(f"Configuration for {osm_tag_category} is missing in the configuration file.")
+            if query_key == "waterbodies" or query_key == "waterways":
+                exact_match = True
+
+            #TODO: The data limit is 1GB. Could try split the query into smaller parts (bounding boxes) and run them separately.
+            #NOTE: the issue with the above is that you might get IP blocked by the server. So, need to be careful with this.
+            query = f"""
+            [out:json]
+            [maxsize:1073741824]
+            [timeout:9000]
+            [date:"{year}-12-31T23:59:59Z"]
+            [bbox:{bbox}];
+            (
+            {self.overpass_query_filter(osm_tag_category,exact_match)}
+            );
+            (._;>;);
+            out;
+            {comments}
+            """
+
+            query_dict[query_key] = query
+
+            # '{' characters must be doubled in Python f-string (except for {bbox} because it is a variable)
+            # to include statement on paved surfaces use: ["surface"~"(paved|asphalt|concrete|paving_stones|sett|unhewn_cobblestone|cobblestone|bricks|metal|wood)"];
+            # it is important to include only paved roads it is important to list all values above, not only 'paved'*/
+            # BUT! : 'paved' tag seems to be missing in a lot of features at timestamps from 2010s
+            # 'residential' roads are not fetched as these areas are already identified in land-use/land-cover data as urban or residential ones
+            # "~" extracts all tags containing this text, for example 'motorway_link'
+
+            # way["railway"];  # to include features if 'railway' key is found (any value)
+            # to include features with values filtered by key. 
+            # This statement also includes 'monorail' which are not obstacles for species migration, but these features are extremely rare. Therefore, it was decided not to overcomplicate the query.
+            # 31/07/2024 - added filtering on 'preserved' railway during the verification by UKCEH LULC dataset (some railways are marked as 'preserved at older timestamps and 'rail' in newer ones).
+
+            # to include small waterways use way["waterway"~"(^river$|^canal$|flowline|tidal_channel|stream|ditch|drain)"]
+
+        if self.verbose:
+            print("Queries have been built.")
+            for query_name, query in query_dict.items():
+                print(f"{query_name} query: {query}")
+                print ("-" * 30)
+        
+        return query_dict
     
 
     def convert_to_geojson(self, queries:dict[str,str], year:int):
