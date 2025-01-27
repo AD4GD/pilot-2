@@ -35,6 +35,12 @@ class LULCEnrichmentWrapper():
         self.working_dir = working_dir
         self.vector_dir = self.config.get('vector_dir')
         self.output_dir = self.config.get('output_dir')
+        # make a new stressors directory to store the outputs if it doesn't exist
+        self.stressors_dir = os.path.join(self.working_dir,self.config.get('stressors_dir'))
+        if not os.path.exists(self.stressors_dir):
+            os.makedirs(self.stressors_dir)
+
+        
         self.lulc_dir = os.path.join(self.working_dir,self.config.get('lulc_dir'))
         self.years = read_years_from_config(self.config)
 
@@ -205,16 +211,18 @@ class LULCEnrichmentWrapper():
         
         return output_gpkg
    
-    def rasterize_vector_roads(self, year:int, raster_metadata:str , roads_gpkg:str, burn_value:int, groupby_roads:bool):
+    def rasterize_vector_roads(self,year:int, output_dir:str, raster_metadata:str ,roads_gpkg:str, burn_value:int, groupby_roads:bool):
         """
         Rasterize roads vector layer to be used for enriching the LULC dataset.
 
         Args:
             year (int): year of the data to process
+            output_dir (str): path to the output directory
             raster_metadata (RasterMetadata): object containing raster metadata (extent, cell size, etc.)
             roads_gpkg (str): path to the roads GeoPackage file
             burn_val (int): value to burn into the output raster 
             groupby_roads (bool): flag to group road types by suffix (e.g. primary, secondary, tertiary)
+            
         Returns:
             dict: dictionary containing road type stressors.
         """
@@ -228,7 +236,7 @@ class LULCEnrichmentWrapper():
         print(f"Road types found in the input vector file: {road_types}")
 
         # extract the road types from the config file that match the road types
-        config_road_types = self.config.get('osm_road', None).get('highway', None)[2].split("|")
+        config_road_types = self.config.get('osm_roads', None).get('highway', None)[2].split("|")
         print(f"Road types found in the configuration file: {config_road_types}")
         # filter road types based on the config file
         road_types = [road_type for road_type in road_types if any(attr in road_type for attr in config_road_types)]
@@ -242,7 +250,7 @@ class LULCEnrichmentWrapper():
         road_tiffs = []
         for road_type in road_types:
             # create a new layer for each road type
-            output_path = os.path.join(self.working_dir,self.output_dir,f'roads_{road_type}.gpkg')
+            output_path = os.path.join(output_dir,f'roads_{road_type}.gpkg')
             road_gpkg = self.new_layer_from_attributes(roads_gpkg, road_layer_name, 'highway', road_type, output_path)
             # edit roads path to include road type
             output_path = output_path.replace('.gpkg', f'_{year}.tif')
@@ -253,7 +261,7 @@ class LULCEnrichmentWrapper():
 
         
         # build a roads.vrt file to merge all road types
-        self.merge_tiffs_into_vrt(road_tiffs, os.path.join(self.working_dir,self.output_dir,f'roads_{year}.vrt')) 
+        self.merge_tiffs_into_vrt(road_tiffs, os.path.join(output_dir,f'roads_{year}.vrt')) 
         return {'roads':road_types}
 
     def rasterize_vector_layers(self, year:int, save_osm_stressors:bool=False):
@@ -267,14 +275,14 @@ class LULCEnrichmentWrapper():
         Returns:
             list: list of paths to the rasterized layers
         """
-        roads = os.path.join(self.working_dir,self.output_dir,f'roads_{year}.vrt') # TO CHANGE
-        railways = os.path.join(self.working_dir,self.output_dir,f'railways_{year}.tif')
-        waterbodies = os.path.join(self.working_dir,self.output_dir,f'waterbodies_{year}.tif')
-        waterways = os.path.join(self.working_dir,self.output_dir,f'waterways_{year}.tif')
+        roads = os.path.join(self.stressors_dir,f'roads_{year}.vrt') # TO CHANGE
+        railways = os.path.join(self.stressors_dir,f'railways_{year}.tif')
+        waterbodies = os.path.join(self.stressors_dir,f'waterbodies_{year}.tif')
+        waterways = os.path.join(self.stressors_dir,f'waterways_{year}.tif')
         rasters_temp = [waterbodies, waterways, roads, railways] # Order is important for next steps
         
         # rasterize roads and railways from buffered geometries
-        osm_impedance_stressor_types = self.rasterize_vector_roads(year, self.lp.raster_metadata, self.vp.vector_roads_buffered, burn_value=self.lp.lulc_codes["lulc_road"], groupby_roads=True)
+        osm_impedance_stressor_types = self.rasterize_vector_roads(year, os.path.dirname(roads), self.lp.raster_metadata, self.vp.vector_roads_buffered, burn_value=self.lp.lulc_codes["lulc_road"], groupby_roads=True)
         self.rasterize_vector_layer(self.lp.raster_metadata,self.vp.vector_railways_buffered, railways, nodata_value=0, burn_value=self.lp.lulc_codes["lulc_railway"])
         # add railway to stressors (because there is no railway type processing we use None)
         osm_impedance_stressor_types['railways'] = None
@@ -449,8 +457,8 @@ class LULCEnrichmentWrapper():
         return base_data, base_ds, nodata_value
     
 if __name__ == "__main__":
-    #
-    lew = LULCEnrichmentWrapper(os.getcwd(), "./config/config.yaml", verbose=True)
+    config_path = os.path.join(os.getcwd(),"config", "config.yaml")
+    lew = LULCEnrichmentWrapper(os.getcwd(),config_path, verbose=True)
     # prepare and merge LULC and OSM data
     lew.prepare_lulc_osm_data(lew.years)
     # merge LULC and OSM data

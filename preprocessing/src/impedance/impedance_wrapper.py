@@ -57,7 +57,13 @@ class ImpedanceWrapper():
         # to be passed into other classes
         self.current_dir = os.path.normpath(os.getcwd())
         self.output_dir = self.config.get('output_dir') # get the output directory
+        self.stressor_dir = self.config.get('stressors_dir') # get the directory for stressors
         self.impedance_dir = self.config.get('impedance_dir') # get the directory for impedance rasters
+        # make a dir for impedance results
+        self.impedance_res_dir = os.path.join(self.stressor_dir, 'impedance_results')
+        if not os.path.exists(self.impedance_res_dir):
+            os.makedirs(self.impedance_res_dir)
+
         
 
     def validate_impedance_config(self, impedance_stressors:dict) -> bool:
@@ -135,9 +141,9 @@ class ImpedanceWrapper():
         # initialize the dictionary for stressors, which contains mapping stressor raster path to YAML alias
         impedance_stressors = {} 
 
-        icp = ImpedanceConfigProcessor(year=year, params_placeholder=self.params_placeholder, config=self.config, config_impedance=self.config_impedance)
+        icp = ImpedanceConfigProcessor(year=year, params_placeholder=self.params_placeholder, config=self.config, config_impedance=self.config_impedance, verbose=self.verbose)
         icp.setup_config_impedance()
-        impedance_stressors, self.config_impedance = icp.process_stressors(self.current_dir, self.output_dir)
+        impedance_stressors, self.config_impedance = icp.process_stressors(self.current_dir, self.stressor_dir)
         # save the updated configuration file
         save_yaml(self.config_impedance, self.config_impedance_path)
 
@@ -172,14 +178,16 @@ class ImpedanceWrapper():
                 max_result=max_result,
                 cumul_result=cumul_result,
                 current_dir=self.current_dir,
-                output_dir=self.output_dir,
+                output_dir=self.impedance_res_dir,
                 config_impedance=self.config_impedance,
                 yaml_stressor=yaml_stressor,
                 stressor_raster=stressor_raster,
                 driver=driver,
                 mem_driver=mem_driver,
                 impedance_ds=impedance_ds,
-                impedance_max=impedance_max)
+                impedance_max=impedance_max,
+                verbose=self.verbose
+                )
             if impedance_processor.ds is None:
                 print(f"Failed to open {stressor_raster}, skipping...")
                 continue

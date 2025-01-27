@@ -154,7 +154,7 @@ def enrich_lulc(
     config_path = os.path.join(config_dir, "config.yaml")
     check_file_exists(config_path)
     try:
-        lew = LULCEnrichmentWrapper(config_path, os.getcwd(), verbose)
+        lew = LULCEnrichmentWrapper(os.getcwd(),config_path,  verbose)
 
         # prompt user to use all years or a specific year
         if len(lew.years) > 1:
@@ -174,16 +174,16 @@ def enrich_lulc(
 
 @app.command("recalc-impedance")
 def enrich_lulc(
-    decline_type: Annotated[str, typer.Option("--decline-type", "-dt", help="Type of decline to use for impedance calculation. Use either exp_decline OR prop_decline ")] = "exp_decline",
-    lambda_decay: Annotated[int, typer.Option("--lambda-decay", "-ld", help="Lambda decay value for impedance calculation")] = 500,
-    k_value: Annotated[int, typer.Option("--k-value", "-k", help="K value for impedance calculation")] = 500,
     config_dir: Annotated[str, typer.Option(..., help="directory to the configuration file")] = "./config",
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
-    del_stressors: Annotated[bool, typer.Option("--save-osm-stressors", "-s", help="Delete OSM stressors")] = False
+    del_stressors: Annotated[bool, typer.Option("--save-osm-stressors", "-s", help="Delete OSM stressors")] = False,
+    decline_type: Annotated[str, typer.Option("--decline-type", "-dt", help="Type of decline to use for impedance calculation. Use either exp_decline OR prop_decline ")] = "exp_decline",
+    lambda_decay: Annotated[int, typer.Option("--lambda-decay", "-ld", help="Lambda decay value for impedance calculation")] = 500,
+    k_value: Annotated[int, typer.Option("--k-value", "-k", help="K value for impedance calculation")] = 500
     ):
     """
     Check if config exists
-    Example usage: python main.py recalc-impedance" --config-dir ./config --verbose --save-osm-stressors
+    Example usage: python main.py recalc-impedance --config-dir ./config --verbose --save-osm-stressors
 
     Args:
 
@@ -195,12 +195,15 @@ def enrich_lulc(
     if not os.path.exists(stressor_yaml_path):
         raise FileNotFoundError("The stressors.yaml file is not found. Please add the file to the config directory.")
     
+    config_path = os.path.join(config_dir, "config.yaml")
+    check_file_exists(config_path)
+    
     iw = ImpedanceWrapper( 
         types = None,
         decline_type = decline_type,
         lambda_decay = lambda_decay,
         k_value = k_value,
-        config_path= os.path.join(config_dir,"config.yaml"),
+        config_path= config_path,
         config_impedance_path= os.path.join(config_dir,"config_impedance.yaml"),
         verbose=verbose
     )

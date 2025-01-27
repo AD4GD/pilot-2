@@ -18,5 +18,26 @@
             "module": "protected_areas.${fileBasenameNoExtension}",
             "cwd": "${workspaceFolder}",
         },
+        {
+            "name": "Python: Module - osm",
+            "type": "python",
+            "request": "launch",
+            "module": "osm.${fileBasenameNoExtension}",
+            "cwd": "${workspaceFolder}",
+        },
+        {
+            "name": "Python: Module - enrichment",
+            "type": "python",
+            "request": "launch",
+            "module": "enrichment.${fileBasenameNoExtension}",
+            "cwd": "${workspaceFolder}",
+        },
+        {
+            "name": "Python: Module - impedance",
+            "type": "python",
+            "request": "launch",
+            "module": "impedance.${fileBasenameNoExtension}",
+            "cwd": "${workspaceFolder}",
+        }
     ]
 }

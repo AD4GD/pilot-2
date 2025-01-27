@@ -10,7 +10,7 @@ class ImpedanceProcessor():
     It computes the proximity raster for each stressor and calculates the edge effect based on the proximity data and the configuration parameters.
     """
 
-    def __init__(self, max_result:float,cumul_result:float, current_dir:str, output_dir:str, config_impedance:dict, yaml_stressor:str, stressor_raster, driver, mem_driver, impedance_ds, impedance_max) -> None:
+    def __init__(self, max_result:float,cumul_result:float, current_dir:str, output_dir:str, config_impedance:dict, yaml_stressor:str, stressor_raster:str, driver:gdal.Driver, mem_driver:gdal.Driver, impedance_ds:gdal.Dataset, impedance_max:float, verbose:bool) -> None:
         """
         Initialize the Impedance class with the configuration file paths and other parameters.
 
@@ -26,6 +26,7 @@ class ImpedanceProcessor():
             mem_driver: The GDAL driver for the in-memory dataset.
             impedance_ds: The impedance raster dataset.
             impedance_max: The maximum value for the impedance dataset.
+            verbose (bool): The flag to print the debug statements.
         """
         self.max_result = max_result
         self.cumul_result = cumul_result
@@ -40,6 +41,7 @@ class ImpedanceProcessor():
         self.impedance_max = impedance_max
         # open the input raster dataset
         self.ds = gdal.Open(stressor_raster)
+        self.verbose = verbose #TODO: implement verbose mode
 
     def handle_no_data(self) -> tuple[int, tuple[float,float], str]:
         """

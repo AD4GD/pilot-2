@@ -24,7 +24,7 @@ class OSMImpedanceProcessor(ImpedanceConfigurationHandler):
             output_dir (str): The output directory
             osm_stressor_path (str): The path to the OSM stressors YAML file (default is 'config/stressors.yaml')
         """
-        super().__init__(config, config_impedance, params_placeholder, impedance_stressors, year, current_dir,output_dir)
+        super().__init__(config, config_impedance, params_placeholder, impedance_stressors, year, current_dir, output_dir)
 
         # additional directories
         self.vector_dir = self.config.get('vector_dir')

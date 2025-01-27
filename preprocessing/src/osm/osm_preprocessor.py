@@ -225,6 +225,15 @@ class OSMPreprocessor():
             else:
                 print(f"Conversion to GeoJSON for {query_name} in the {year} year failed.")
                 print(result.stderr)
+
+            if self.verbose:
+                #print number of features in the GeoJSON file
+                with open(output_file, 'r', encoding='utf-8') as f:
+                    geojson_data = json.load(f)
+                    features = geojson_data.get('features', [])
+                    print(f"Total features in {query_name} in the {year} year: {len(features)}")
+                    print ("-" * 30)
+                    
             
 
     def fix_invalid_geometries(self, queries:dict[str,str], year:int ,overwrite_original:bool):
