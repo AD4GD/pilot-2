@@ -5,6 +5,7 @@
 from osgeo import gdal, osr
 import pyproj
 import warnings
+from cli_markdown import print_table
 
 class RasterTransform:
     def __init__(self, raster_path):
@@ -17,7 +18,6 @@ class RasterTransform:
         nodata = None
 
     def get_raster_info(self):
-
         raster = gdal.Open(self.raster_path)
         if raster is None:
             raise FileNotFoundError("Input raster is missing.")
@@ -151,15 +151,13 @@ class RasterTransform:
             always_xy=True # to ensure that coordinates are always treated as (x, y).
         )
         
-
-        x_min_after, y_min_after = transform_cart_to_geog.transform(self.x_min_before, self.y_min_before)
-        x_max_after, y_max_after = transform_cart_to_geog.transform(self.x_max_before, self.y_max_before)
+        y_min_after,x_min_after = transform_cart_to_geog.transform(self.x_min_before, self.y_min_before)
+        y_max_after,x_max_after = transform_cart_to_geog.transform(self.x_max_before, self.y_max_before)
 
         return x_min_after, y_min_after, x_max_after, y_max_after
 
     # run transformation of coordinates
-    def transform_and_print(self):
-
+    def transform_and_print(self, print_details=True) -> tuple:
         """
         Transforms coordinates and prints spatial resolution and bounding box details.
         """
@@ -167,37 +165,37 @@ class RasterTransform:
         _, _, _, _, cell_size, _ = self.get_raster_info()
         x_min_after, y_min_after, x_max_after, y_max_after = self.transform_coordinates()
 
-        print (f"Spatial resolution (pixel size) is {cell_size} meters")
+        if print_details:
+            # print the details in a table
+            print_table("Before raster transform extent", 
+            {
+                "x_min_before": self.x_min_before,
+                "x_max_before": self.x_max_before,
+                "y_min_before": self.y_min_before,
+                "y_max_before": self.y_max_before,
+            })
 
-        # print the coordinates before transformation
-        print("Before reprojection:")
-        print("x_min:", self.x_min_before)
-        print("x_max:", self.x_max_before)
-        print("y_min:", self.y_min_before)
-        print("y_max:", self.y_max_before)
+            print_table("After raster transform extent", {
+                "x_min_after": x_min_after,
+                "x_max_after": x_max_after,
+                "y_min_after": y_min_after,
+                "y_max_after": y_max_after,
+            })
+            print(f"Spatial resolution of the raster: {cell_size}")
+            print(f"Bounding box coordinates in WGS84: {x_min_after}, {y_min_after}, {x_max_after}, {y_max_after}")
 
-        # print the coordinates after transformation
-        print("After reprojection:")
-        print("x_min:", x_min_after)
-        print("x_max:", x_max_after)
-        print("y_min:", y_min_after)
-        print("y_max:", y_max_after)
+        return x_min_after, y_min_after, x_max_after, y_max_after
 
-        bbox = f"{x_min_after},{y_min_after},{x_max_after},{y_max_after}"
-        print("Bounding box:", bbox)
-
-    def bbox_to_WGS84(self):
+    def bbox_to_WGS84(self, print_details=False) -> tuple:
         """
         This method calculates the bounding box coordinates of the raster in WGS84.
 
         Returns:
-        - cell_size: The spatial resolution of the raster.
-        - x_min_after, y_min_after, x_max_after, y_max_after: Transformed coordinates in WGS84.
+        Tuple of four values: Transformed coordinates in WGS84 (x_min_after, y_min_after, x_max_after, y_max_after)
         """
 
-        self.transform_and_print()  # transform coordinates and print transformed values
-        x_min_after, y_min_after, x_max_after, y_max_after = self.transform_coordinates()
-        return x_min_after, y_min_after, x_max_after, y_max_after
+        self.transform_and_print(print_details)  # transform coordinates and print transformed values
+        return self.transform_and_print(print_details)
     
 # Example usage
 # raster_file = os.path.join(input_dir,'lulc.tif')
