@@ -7,12 +7,13 @@ from protected_areas.wpda_wrapper import WDPAWrapper
 from osm.osm_wrapper import OSMWrapper
 from enrichment.lulc_enrichment_wrapper import LULCEnrichmentWrapper
 from impedance.impedance_wrapper import ImpedanceWrapper
+import time
 
 err_console = Console(stderr=True, style="bold red")
 
 app = typer.Typer(
-    name="Preprocessing CLI",
-    help="CLI tool for preprocessing protected areas and land impedance data.",
+    name="Data4Land CLI",
+    help="CLI tool for preprocessing and enriching land-use/land-cover data.",
 )
 
 def check_file_exists(filePath:str):
@@ -32,21 +33,26 @@ def check_file_exists(filePath:str):
 #NOTE only prompt user to confirm using APIs.
 @app.command("process-wdpa")
 def process_wdpa(
-    config_dir: Annotated[str, typer.Option(..., help="directory to the configuration file")] = "./config",
+    config_dir: Annotated[str, typer.Option(..., help="Directory with the configuration file")] = "./config",
     auto_confirm: Annotated[bool, typer.Option("--force", "-f", help="Auto confirm all prompts")] = False,
     skip_fetch: Annotated[bool, typer.Option("--skip-fetch", "-s", help="Skip fetching protected areas")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
+    record_time: Annotated[bool, typer.Option("--record_time", "-t", help="Record execution time")] = True
 ):
     """
     Preprocess protected areas data for each year of lulc data
     Example usage: python main.py process-wdpa --config-dir ./config --force --skip-fetch --verbose
     
     Args:
-        config_path (str): The path to the configuration file.
+        config_dir (str): Directory containing the configuration file.
         auto_confirm (bool): Auto confirm all prompts.
         skip_fetch (bool): Skip fetching protected areas data from the API.
         verbose (bool): Verbose mode.
+        record_time (bool): Record the execution time
     """
+    if record_time:
+        start_time = time.time()
+
     # TODO - to add flag (option) on skipping establishment year of protected areas
     config_path = os.path.join(config_dir, "config.yaml")
     check_file_exists(config_path)
@@ -91,22 +97,35 @@ def process_wdpa(
     except Exception as e:
         err_console.print(f"Error: {e}")
         raise typer.Exit(code=1)
+    
+    if record_time:
+        finish_time = time.time()
+        elapsed_time = finish_time - start_time
+        typer.secho(f"Elapsed time: {elapsed_time:.4f} seconds", fg=typer.colors.BLUE, bg=typer.colors.WHITE)
 
 @app.command("process-osm")
 def process_osm(
-    config_dir: Annotated[str, typer.Option(..., help="directory to the configuration file")] = "./config",
-    skip_fetch: Annotated[bool, typer.Option("--skip-fetch", "-s", help="Skip fetching osm data")] = False,
+    config_dir: Annotated[str, typer.Option(..., help="Directory with the configuration file")] = "./config",
+    skip_fetch: Annotated[bool, typer.Option("--skip-fetch", "-s", help="Skip fetching OSM data")] = False,
     delete_intermediate_files: Annotated[bool, typer.Option("--del-temp", "-dt", help="Delete intermediate GeoJSON & GPKG files")] = False,
-    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False
+    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
+    record_time: Annotated[bool, typer.Option("--record_time", "-t", help="Record execution time")] = True
     ):
     """
     Check if config exists
     Example usage: python main.py process-osm --config-dir ./config --verbose --skip-fetch --del-temp
 
     Args:
-        config_path (str): The path to the configuration file.
+        config_dir (str): Directory containing the configuration file.
+        skip_fetch (bool): Delete intermediate GeoJSON & GPKG files.
+        delete_intermediate_files (bool): Skip fetching OSM data.
         verbose (bool): Verbose mode.
+        record_time (bool): Record the execution time.
     """
+
+    if record_time:
+        start_time = time.time()
+
     config_path = os.path.join(config_dir, "config.yaml")
     check_file_exists(config_path)
     try:
@@ -135,23 +154,33 @@ def process_osm(
     except Exception as e:
         err_console.print(f"Error: {e}")
         raise typer.Exit(code=1)
+    
+    if record_time:
+        finish_time = time.time()
+        elapsed_time = finish_time - start_time
+        typer.secho(f"Elapsed time: {elapsed_time:.4f} seconds", fg=typer.colors.BLUE, bg=typer.colors.WHITE)
  
 
 @app.command("enrich-lulc")
 def enrich_lulc(
-    config_dir: Annotated[str, typer.Option(..., help="directory to the configuration file")] = "./config",
+    config_dir: Annotated[str, typer.Option(..., help="Directory with the configuration file")] = "./config",
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
-    save_osm_stressors: Annotated[bool, typer.Option("--save-osm-stressors", "-s", help="Save OSM stressors to file")] = False
+    save_osm_stressors: Annotated[bool, typer.Option("--save-osm-stressors", "-s", help="Save OSM stressors to file")] = False,
+    record_time: Annotated[bool, typer.Option("--record_time", "-t", help="Record execution time")] = True
     ):
     """
     Check if config exists
     Example usage: python main.py enrich-lulc --config-dir ./config --verbose --save-osm-stressors
 
     Args:
-        config_path (str): The path to the configuration file.
-        verbose (bool): Verbose mode
-        save_osm_stressors (bool): Save OSM stressors to file
+        config_dir (str): Directory containing the configuration file.
+        verbose (bool): Verbose mode.
+        save_osm_stressors (bool): Save OSM stressors to file.
+        record_time (bool): Record the execution time.
     """
+    if record_time:
+        start_time = time.time()
+
     config_path = os.path.join(config_dir, "config.yaml")
     check_file_exists(config_path)
     try:
@@ -172,26 +201,38 @@ def enrich_lulc(
     except Exception as e:
         err_console.print(f"Error: {e}")
         raise typer.Exit(code=1)
+    
+    if record_time:
+        finish_time = time.time()
+        elapsed_time = finish_time - start_time
+        typer.secho(f"Elapsed time: {elapsed_time:.4f} seconds", fg=typer.colors.BLUE, bg=typer.colors.WHITE)
 
 @app.command("recalc-impedance")
 def recalc_impedance(
-    config_dir: Annotated[str, typer.Option(..., help="directory to the configuration file")] = "./config",
+    config_dir: Annotated[str, typer.Option(..., help="Path to the configuration file")] = "./config",
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
     del_stressors: Annotated[bool, typer.Option("--save-osm-stressors", "-s", help="Delete OSM stressors")] = False,
-    decline_type: Annotated[str, typer.Option("--decline-type", "-dt", help="Type of decline to use for impedance calculation. Use either exp_decline OR prop_decline ")] = "exp_decline",
+    decline_type: Annotated[str, typer.Option("--decline-type", "-dt", help="Type of decline to use for impedance calculation. Use either exp_decline OR prop_decline")] = "exp_decline",
     lambda_decay: Annotated[int, typer.Option("--lambda-decay", "-ld", help="Lambda decay value for impedance calculation")] = 500,
-    k_value: Annotated[int, typer.Option("--k-value", "-k", help="K value for impedance calculation")] = 500
+    k_value: Annotated[int, typer.Option("--k-value", "-k", help="K-value for impedance calculation")] = 500,
+    record_time: Annotated[bool, typer.Option("--record_time", "-t", help="Record execution time")] = True
     ):
     """
     Check if config exists
     Example usage: python main.py recalc-impedance --config-dir ./config --verbose --save-osm-stressors
 
     Args:
-
         config_dir (str): The path to the configuration directory.
         verbose (bool): Verbose mode
-        save_osm_stressors (bool): Save OSM stressors to file
+        del_stressors (bool): Delete OSM stressors (intermediate GeoTIFF files).
+        decline_type (str): Type of decline to use for impedance calculation. Use either exp_decline OR prop_decline.
+        lambda_decay (int): Lambda decay value for impedance calculation (if decline type is exponential).
+        k_value (int): K-value for impedance calculation (if decline type is proportional).
+        record_time (bool): Record the execution time.
     """
+    if record_time:
+        start_time = time.time()
+
     stressor_yaml_path = os.path.join(config_dir,"stressors.yaml")
     if not os.path.exists(stressor_yaml_path):
         raise FileNotFoundError("The stressors.yaml file is not found. Please add the file to the config directory.")
@@ -243,13 +284,19 @@ def recalc_impedance(
     if del_stressors:
         os.remove(stressor_yaml_path)
         typer.secho("Temporary OSM stressor file has been deleted", fg=typer.colors.RED)
+        
+    if record_time:
+        finish_time = time.time()
+        elapsed_time = finish_time - start_time
+        typer.secho(f"Elapsed time: {elapsed_time:.4f} seconds", fg=typer.colors.BLUE, bg=typer.colors.WHITE)
+
 
 #Test command
 @app.command("test")
 def init(firstname: str, surname: str, formal: bool = False):
     """
-    Example usage 
-    python main.py test name surname --formal
+    For testing only. Example usage:
+    python main.py test name surname --formal 
     typer run main.py test name surname --formal
     """
     if formal:

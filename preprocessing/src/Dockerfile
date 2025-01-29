@@ -8,6 +8,7 @@ RUN apt-get update --fix-missing
 RUN apt-get install --fix-missing -y python3-pip python3.12-venv 
 # Sometimes this nodejs command fails
 RUN apt-get install --fix-missing -y nodejs npm 
+# TODO - to remove nodejs once Ohsome API implemented instead of Overpass
 
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
