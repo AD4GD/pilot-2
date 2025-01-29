@@ -40,7 +40,7 @@ def process_wdpa(
     record_time: Annotated[bool, typer.Option("--record_time", "-t", help="Record execution time")] = True
 ):
     """
-    Preprocess protected areas data for each year of lulc data
+    Preprocess data on protected areas for each year of LULC data.
     Example usage: python main.py process-wdpa --config-dir ./config --force --skip-fetch --verbose
     
     Args:
@@ -112,7 +112,7 @@ def process_osm(
     record_time: Annotated[bool, typer.Option("--record_time", "-t", help="Record execution time")] = True
     ):
     """
-    Check if config exists
+    Check if config exists. Fetches and translating Open Street Map data.
     Example usage: python main.py process-osm --config-dir ./config --verbose --skip-fetch --del-temp
 
     Args:
@@ -169,7 +169,7 @@ def enrich_lulc(
     record_time: Annotated[bool, typer.Option("--record_time", "-t", help="Record execution time")] = True
     ):
     """
-    Check if config exists
+    Check if config exists. Processing and merging fetched data into output LULC dataset.
     Example usage: python main.py enrich-lulc --config-dir ./config --verbose --save-osm-stressors
 
     Args:
@@ -218,7 +218,7 @@ def recalc_impedance(
     record_time: Annotated[bool, typer.Option("--record_time", "-t", help="Record execution time")] = True
     ):
     """
-    Check if config exists
+    Check if config exists. Recalculation of landscape impedance data for follow-up commputations.
     Example usage: python main.py recalc-impedance --config-dir ./config --verbose --save-osm-stressors
 
     Args:
