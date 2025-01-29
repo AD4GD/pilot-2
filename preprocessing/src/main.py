@@ -47,6 +47,7 @@ def process_wdpa(
         skip_fetch (bool): Skip fetching protected areas data from the API.
         verbose (bool): Verbose mode.
     """
+    # TODO - to add flag (option) on skipping establishment year of protected areas
     config_path = os.path.join(config_dir, "config.yaml")
     check_file_exists(config_path)
 
@@ -173,7 +174,7 @@ def enrich_lulc(
         raise typer.Exit(code=1)
 
 @app.command("recalc-impedance")
-def enrich_lulc(
+def recalc_impedance(
     config_dir: Annotated[str, typer.Option(..., help="directory to the configuration file")] = "./config",
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
     del_stressors: Annotated[bool, typer.Option("--save-osm-stressors", "-s", help="Delete OSM stressors")] = False,

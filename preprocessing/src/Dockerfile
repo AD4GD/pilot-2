@@ -11,7 +11,9 @@ RUN apt-get install --fix-missing -y nodejs npm
 
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
+# Copy the requirements.txt file into the container
 COPY requirements.txt .
+# Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt
 RUN npm install -g osmtogeojson
 
@@ -20,9 +22,3 @@ RUN apt-get install --fix-missing -y dos2unix
 
 WORKDIR /src
 CMD ["jupyter" , "lab", "--allow-root", "--port=9999", "--ip=0.0.0.0", "--no-browser"]
-
-# Copy the requirements.txt file into the container
-COPY requirements.txt .
-
-# Install any needed packages specified in requirements.txt
-RUN pip install -r requirements.txt
