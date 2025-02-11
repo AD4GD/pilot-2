@@ -11,6 +11,25 @@ cache/
 # ignore temporary directrory for geopackages
 gpkg_temp/
 
+# ignore input data with other timestamps or not relevant bboxes
+src/data/input/impedance/impedance_lulc_albera_ext_concat_upd_2012.tif
+src/data/input/impedance/impedance_lulc_albera_ext_concat_upd_2022.tif
+
+src/data/input/lulc/lulc_aggr_upd_2017.tif
+src/data/input/lulc/lulc_ext_concat_upd_2012.tif
+src/data/input/lulc/lulc_ext_concat_upd_2022.tif
+
+# ignore folders with temp files
+src/data/input/protected_areas/
+src/data/input/vector/
+src/data/input/archive/
+
+# ignore output
+src/data/output/
+
+# old visualisation
+visualisation/workflow_outdated_1.png
+
 # ignore ohsome experiments yet
 # osm_tag_history
 ohsome_output/
@@ -21,9 +40,12 @@ config_ohsome.yaml
 osm_tag_history.py
 ohsome_geom.py
 ohsome_geom_date.py
+correlation'.py
 # other scripts to analyse
 analysis.py
 nominatim_api.py
+
+
 
 # ancillary and intermediate outputs in the nested directory
 1_protected_areas/output.txt
@@ -85,6 +107,9 @@ MANIFEST
 *.manifest
 *.spec
 
+# src folders
+env/
+.vscode
 
 ## OTHER PATHS 
 

@@ -223,7 +223,7 @@ if __name__ == "__main__":
         # e.g. impedance_stressors = {'primary': '/data/data/output/roads_primary_2018.tif'}
         impedance_stressors = iw.process_impedance_config(year)
 
-    #2. Prompt user to update the configuration file
+    # 2. Prompt user to update the configuration file
     print("Please check/update the configuration file for impedance dataset (config_impedance.yaml):")
 
     # 2.1. Or validate after manual update 

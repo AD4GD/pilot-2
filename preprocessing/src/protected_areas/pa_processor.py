@@ -60,8 +60,8 @@ class PAProcessor:
                 date_str = date.strftime('%Y-%m-%d')
               
             # extract geometry
-            geometry = pa['geojson']['geometry']
-            pa.get('geojson', {}).get('geometry')
+            geometry = pa.get('geojson', {}).get('geometry')
+
 
             # debugging, print the geometry data
             if geometry is None:

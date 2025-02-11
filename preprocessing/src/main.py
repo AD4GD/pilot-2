@@ -9,6 +9,9 @@ from enrichment.lulc_enrichment_wrapper import LULCEnrichmentWrapper
 from impedance.impedance_wrapper import ImpedanceWrapper
 import time
 
+# TODO - to add the function that can create impedance dataset based on csv table if user doesn't have it yet. So, the function can be used as option in 1,3 and 4th commands independently.
+# TODO - to put recurring time captures to the separate function? (or use local module timing)
+
 err_console = Console(stderr=True, style="bold red")
 
 app = typer.Typer(
@@ -82,7 +85,7 @@ def process_wdpa(
         print("Rasterizing the merged GeoPackage file...")
         wp.rasterize_protected_areas(merged_gpkg, os.path.join(working_dir,wp.config.get("lulc_dir")), pa_to_yearly_rasters=True)
         
-        # # STEP 4.0: Raster Calculation
+        # # STEP 4.0: Raster calculation
         print("Summing LULC and PA rasters...")
         wp.sum_lulc_pa_rasters()
 
@@ -112,15 +115,17 @@ def process_osm(
     record_time: Annotated[bool, typer.Option("--record_time", "-t", help="Record execution time")] = True
     ):
     """
-    Check if config exists. Fetches and translating Open Street Map data.
+    Check if config exists. Fetches and translates Open Street Map data.
     Example usage: python main.py process-osm --config-dir ./config --verbose --skip-fetch --del-temp
 
     Args:
         config_dir (str): Directory containing the configuration file.
-        skip_fetch (bool): Delete intermediate GeoJSON & GPKG files.
-        delete_intermediate_files (bool): Skip fetching OSM data.
+        skip_fetch (bool): Skip fetching OSM data.
+        delete_intermediate_files (bool): Delete intermediate GeoJSON & GPKG files.
         verbose (bool): Verbose mode.
         record_time (bool): Record the execution time.
+
+    # TODO - once ohsome API is implemented, provide separate option --api so user can choose from Ohsome and Overpass (Ohsome is preferable)
     """
 
     if record_time:
@@ -169,7 +174,7 @@ def enrich_lulc(
     record_time: Annotated[bool, typer.Option("--record_time", "-t", help="Record execution time")] = True
     ):
     """
-    Check if config exists. Processing and merging fetched data into output LULC dataset.
+    Check if config exists. Processes and merges fetched data into output LULC dataset.
     Example usage: python main.py enrich-lulc --config-dir ./config --verbose --save-osm-stressors
 
     Args:
@@ -178,6 +183,7 @@ def enrich_lulc(
         save_osm_stressors (bool): Save OSM stressors to file.
         record_time (bool): Record the execution time.
     """
+    # TODO - to delete intermediate files (buffered features) as if we don't delete it they can raise errors for following runs
     if record_time:
         start_time = time.time()
 
@@ -211,15 +217,15 @@ def enrich_lulc(
 def recalc_impedance(
     config_dir: Annotated[str, typer.Option(..., help="Path to the configuration file")] = "./config",
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
-    del_stressors: Annotated[bool, typer.Option("--save-osm-stressors", "-s", help="Delete OSM stressors")] = False,
+    del_stressors: Annotated[bool, typer.Option("--del-stressors", "-s", help="Delete OSM stressors")] = False,
     decline_type: Annotated[str, typer.Option("--decline-type", "-dt", help="Type of decline to use for impedance calculation. Use either exp_decline OR prop_decline")] = "exp_decline",
     lambda_decay: Annotated[int, typer.Option("--lambda-decay", "-ld", help="Lambda decay value for impedance calculation")] = 500,
     k_value: Annotated[int, typer.Option("--k-value", "-k", help="K-value for impedance calculation")] = 500,
     record_time: Annotated[bool, typer.Option("--record_time", "-t", help="Record execution time")] = True
     ):
     """
-    Check if config exists. Recalculation of landscape impedance data for follow-up commputations.
-    Example usage: python main.py recalc-impedance --config-dir ./config --verbose --save-osm-stressors
+    Check if config exists. Recalculates landscape impedance data for follow-up commputations.
+    Example usage: python main.py recalc-impedance --config-dir ./config --verbose --del-stressors
 
     Args:
         config_dir (str): The path to the configuration directory.
@@ -262,8 +268,19 @@ def recalc_impedance(
         # e.g. impedance_stressors = {'primary': '/data/data/output/roads_primary_2018.tif'}
         impedance_stressors = iw.process_impedance_config(year)
 
-    #2. Prompt user to update the configuration file
-    typer.secho("Please check/update the configuration file for impedance dataset (config_impedance.yaml):", fg=typer.colors.RED)
+    # 2. Prompt user to update the configuration file
+
+    message = typer.style(
+    "Please check/update the configuration file for impedance dataset (config_impedance.yaml). "
+    "Type 'yes' or 'y' to confirm your configuration of ecological parameters for these biodiversity stressors.",
+    fg=typer.colors.RED
+    )
+
+    confirm = typer.confirm(message) 
+
+    if not confirm:
+        err_console.print("Exiting...")
+        raise typer.Exit(code=1)
 
     # 2.1. Or validate after manual update 
     is_valid = iw.validate_impedance_config(impedance_stressors)
@@ -275,7 +292,7 @@ def recalc_impedance(
         # 3.  Get the maximum value of the impedance raster dataset
         impedance_ds, impedance_max = iw.get_impedance_max_value(year)
 
-        #3.0 Calculate impedance
+        # 3.0 Calculate impedance
         max_result_tif = iw.calculate_impedance(impedance_stressors,impedance_ds,impedance_max)
         if verbose:
             typer.secho(f"max_result_tif saved to: {max_result_tif}", fg=typer.colors.GREEN)

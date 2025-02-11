@@ -35,6 +35,7 @@ class UpdateLandImpedance():
             raise ValueError("Impedance directory is null or not found in the configuration file.")
 
         # read flag on reclassification table (lulc-impedance) from configuration file (true or false)
+        # TODO - explicitly specify in CLI process-wdpa
         self.lulc_reclass_table = self.config.get('lulc_reclass_table', None)
         if self.lulc_reclass_table is None:
             warnings.warn("Flag on the usage of reclassification table is not found.")
@@ -54,6 +55,7 @@ class UpdateLandImpedance():
         
         self.tiff_files = [f for f in os.listdir(self.input_folder) if f.endswith('_pa.tif')] # ADDED SUFFIX (UPDATED LULC)
         self.impedance_files = [f for f in os.listdir(self.output_folder) if f.endswith('.tif')] # IMPEDANCE DATASET
+        print(f"Impedance files are: {self.impedance_files}")
 
 
     def update_impedance(self) -> None:
@@ -108,9 +110,10 @@ class UpdateLandImpedance():
 
                 # modify the output raster filename to ensure it's different from the input raster filename
                 # NOTE: If output_file already exists from a previous run, delete it to avoid errors with naming
+                # TODO: somehow avoid these impedance file with '_pa' extension in this loop
                 output_file = f"{base_name}_pa{extension}"
                 impedance_out_path = os.path.join(self.output_folder, output_file)
-                
+
                 data_type = self.apply_multiplier(impedance_in_path, impedance_out_path, lulc_file, path_to_reclass_table, self.pa_effect)
                 print ("Data type used to update",data_type)
 
@@ -131,16 +134,17 @@ class UpdateLandImpedance():
         Multiplies a raster based on the effect of protected areas.
 
         Args:
-            impedance_in_raster (str): The path to the input impedance raster.
-            impedance_out_raster (str): The path to the output impedance raster.
-            lulc_raster (str): The path to the input LULC raster.
+            impedance_in_path (str): The path to the input impedance raster.
+            impedance_out_path (str): The path to the output impedance raster.
+            lulc_path (str): The path to the input LULC raster.
+            reclass_table (str): The path to the table with values of reclassification from LULC codes to landscape impedance values.
             pa_effect (float): The value of PA effect.
 
         Returns:
             str: The data type of the output raster.
         """
+
         reclass_dict,has_decimal,data_type = self.generate_impedance_reclass_dict(reclass_table)
-        
         # open the impedance dataset
         impedance_ds = gdal.Open(impedance_in_path)
         lulc_pa_ds = gdal.Open(lulc_path)
@@ -196,18 +200,23 @@ class UpdateLandImpedance():
             tuple: A tuple containing the reclassification dictionary, a boolean indicating if the data type is decimal, and the data type.
         """
         has_decimal = False
+
+        # read first few lines to detect the delimiter
+        with open(reclass_table, 'r', encoding='utf-8-sig') as f:
+            first_line = f.readline()
+        # check if the first line contains a tab
+        delimiter = '\t' if '\t' in first_line else ','
         # read into pandas dataframe and convert to numeric
-        df = pd.read_csv(reclass_table, encoding='utf-8-sig')
+        df = pd.read_csv(reclass_table, encoding='utf-8-sig', delimiter=delimiter) # allow tab and comma as CSV delimiters
         df = df.apply(pd.to_numeric, errors='coerce')
+
         # check if there are decimal values in the dataframe
-        if df['impedance'].dtype == 'float64':
+        if np.issubdtype(df['impedance'].dtype, np.floating): #
             has_decimal = True
             # convert lulc to float too
             df['lulc'] = df['lulc'].astype(float)
-
         # create a dictionary from the dataframe reclass_dict[lulc] = impedance
         reclass_dict = df.set_index('lulc')['impedance'].to_dict()
-        
         
         if has_decimal:
             print("LULC impedance is characterized by decimal values.")

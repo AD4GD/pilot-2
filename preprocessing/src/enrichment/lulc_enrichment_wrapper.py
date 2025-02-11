@@ -40,7 +40,6 @@ class LULCEnrichmentWrapper():
         if not os.path.exists(self.stressors_dir):
             os.makedirs(self.stressors_dir)
 
-        
         self.lulc_dir = os.path.join(self.working_dir,self.config.get('lulc_dir'))
         self.years = read_years_from_config(self.config)
 
@@ -88,8 +87,9 @@ class LULCEnrichmentWrapper():
 
             # overwrite rasters over input dataset in the following order: waterbodies, waterways, roads, railways
             output_data, output_ds, nodata_value = self.overwrite_raster(self.lulc_filepaths[year], *self.rasters_temp)
+            print(f"FOR WRITING UPDATED LULC RASTER: {output_data, output_ds, nodata_value}")
             self.write_raster(output_data, output_ds, lulc_upd, nodata_value)
-
+            # TODO - output dataset is not being assigned correctly nodatavalue - it is byte, but inherits 0 as nodatavalue from OSM stressors and -9999 from LULC stressors
 
     def merge_tiffs_into_vrt(self, tiffs:list, output_path:str):
         """
@@ -304,7 +304,7 @@ class LULCEnrichmentWrapper():
         Rasterize a vector layer to a raster dataset.
 
         Args:
-            lulc (Raster_Properites): object containing raster properties
+            lulc (Raster_Properties): object containing raster properties
             vector_path (str): path to the vector dataset
             output_path (str): path to the output raster dataset
             nodata_value (str): no data value for the output raster
@@ -345,8 +345,11 @@ class LULCEnrichmentWrapper():
         subprocess.run(gdal_rasterize_cmd, check=True, capture_output=True, text=True)
 
         # mask out data outside the extent of the input raster
-        # self.mask_raster_with_raster(output_path, self.lulc, nodata_value)
-
+        for year in self.years:
+            ''' DEBUG
+            print(f"FOR MASKING: {output_path, self.lulc_filepaths[year], nodata_value}")'''
+            self.mask_raster_with_raster(output_path, self.lulc_filepaths[year], nodata_value)
+        
         # compress output 
         output_compressed = output_path.replace('.tif', '_compr.tif')
         gdal_translate_cmd = [

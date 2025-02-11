@@ -150,9 +150,11 @@ class ImpedanceProcessor():
             if key == search_key:
                 return value
             elif isinstance(value, dict):
-                return self.find_param(value, search_key)
-
-
+                result = self.find_param(value, search_key)
+                if result is not None: # added for recursive search because otherwise if the first nested dict doesn't contain key, it will return None
+                    return result
+        return None
+                
     def calculate_edge_effect(self, proximity_data: np.ndarray):
         """
         Calculate the edge effect based on the proximity data and the impedance configuration parameters (decay type, lambda decay, k-value).
@@ -171,8 +173,9 @@ class ImpedanceProcessor():
         print(f"Path to output raster dataset with calculated edge effect: {edgeEff_output_path}") # debug
 
         # get corresponding parameter for each stressor
-        stressor_params = find_stressor_params(self.config_impedance, self.yaml_stressor)
-        print(f"Stressor parameters: {stressor_params}") # debug
+        stressor_params = find_stressor_params(self.config_impedance, self.yaml_stressor) # !if the output of find_stressor_params it will be automatically replaced with sample values!
+        print(f"self.yaml_stressor is {self.yaml_stressor}")
+        print(f"Stressor parameters: {stressor_params}") # debug 
         decline_type = self.find_param(stressor_params, 'decline_type')
         lambda_decay = self.find_param(stressor_params, 'lambda_decay')
         k_value = self.find_param(stressor_params, 'k_value')

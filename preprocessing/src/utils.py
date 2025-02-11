@@ -101,20 +101,22 @@ def extract_attribute_values(vector_gpkg:str, layer_name:str, attribute:str) -> 
     return unique_values
     
 
-def find_stressor_params(config_dict:dict, search_key:str):
-        """
-        Recursively search for the stressor parameters in the nested dictionary (eg, railways) and return the dictionary of parameters.
-        """
-        if isinstance(config_dict, dict):
-            # Check if in_key is present at the current level
-            if search_key in config_dict:
-                return config_dict[search_key]
-            # Recurse through each key-value pair in the dictionary
-            for key, value in config_dict.items():
-                stressor_params = find_stressor_params(value, search_key)
-                if stressor_params is not None:
-                    return stressor_params
-        return None 
+def find_stressor_params(config_dict: dict, search_key: str):
+    """
+    Recursively search for the first occurrence of a key in a nested dictionary.
+    """
+    if isinstance(config_dict, dict):
+        if search_key in config_dict:
+            return config_dict[search_key]  # return first match
+        
+        # recursively search in nested dictionaries
+        for value in config_dict.values():
+            stressor_params = find_stressor_params(value, search_key)
+            if stressor_params is not None:
+                return stressor_params  # stop searching once match foun
+
+    return None  # return None if not found
+
 
 def get_lulc_template(lulc_dir:str,config:dict, year:int) -> str:
     """

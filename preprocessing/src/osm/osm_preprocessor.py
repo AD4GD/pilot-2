@@ -143,15 +143,16 @@ class OSMPreprocessor():
         """
 
         # dictionary of queries with the keys as the OSM tag categories and the values as the queries (only comments are included in initialisation)
+        # TODO - to handle automatic changes in comments to query as Overpass Turbo restricts retries with unique URL
         query_dict =  {
-        "roads": f"""/* also includes 'motorway_link',  'trunk_link' etc. because they also restrict habitat connectivity */""", 
+        "roads": f"""/* also includes 'motorway_link',  'trunk_link' etc because they also restrict connectivity */""", 
         "railways":f"""/* to include historical railways*/""", 
         "waterways":f"""
             /* ^ and $ symbols to exclude 'riverbank' and 'derelict_canal'*/ 
-            /*second line is added in case if some older features are missing 'way' tag*/
+            /*second line has been added in case if some older features are missing 'way' tag*/
             """, 
         "waterbodies":f"""
-            /*second filter was added to catch other water features at all timestamps*/
+            /*second filter has been added to catch other water features at all timestamps*/
             /*third and fourth filters were added to catch other water features at older timestamps*/
             /*it is more reliable to query nodes, ways and relations altogether ('nwr') to fetch the complete polygon spatial features*/
             """

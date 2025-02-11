@@ -4,6 +4,7 @@ import os
 import subprocess
 import numpy as np
 from raster_metadata import RasterMetadata
+from osgeo import gdal
 
 class PARasterizer:
     """
@@ -19,13 +20,39 @@ class PARasterizer:
             input_dir (str): The path to the directory containing the LULC files.
             output_dir (str): The path to the output directory.
         """
-        self.gdf = gpd.read_file(gpkg_filepath)
+
         self.input_folder = input_dir
         self.output_dir = output_dir
         # create output directory if it does not exist
         os.makedirs(output_dir, exist_ok=True)
 
-        # Extract raster metadata
+        self.gdfs = {}  # dictionary to store all layers as GeoDataFrames
+        dataset = gdal.OpenEx(gpkg_filepath, gdal.OF_VECTOR)
+        if dataset is None:
+            print("Failed to open GeoPackage.")
+            return
+        
+        # get the number of layers in the dataset
+        layer_count = dataset.GetLayerCount()
+        layers = []
+        # loop through the layers and get their names
+        for i in range(layer_count):
+            layer = dataset.GetLayerByIndex(i)
+            layers.append(layer.GetName())
+        print(f"Layers in the dataset of protected areas: {layers}")
+
+        # now load each layer into a separate geodataframe
+        for layer in layers:
+            print(f"Loading layer: {layer}")
+            # read each layer
+            self.gdfs[layer] = gpd.read_file(gpkg_filepath, layer=layer)
+            # NOTE - DEBUG
+            '''
+            print(f"GeoDataFrame for {layer}:")
+            print(self.gdfs[layer].head())  # Show first few rows of data
+            '''
+
+        # extract raster metadata
         tiff_files = [f for f in os.listdir(input_dir) if f.endswith('.tif')]
         if tiff_files:
             # choose the first TIFF file (it shouldn't matter which LULC file to extract extent because they must have the same extent)
@@ -36,8 +63,10 @@ class PARasterizer:
             raise ValueError("No LULC files found in the input folder.")
 
         # extract the year from the filename (last block before the file extension with '-' separator
-        self.year_stamps = [f.split('_')[-1].split('.')[0] for f in tiff_files]
-        print("Considered timestamps of LULC data are:","".join(str(self.year_stamps)))
+        self.year_stamps_all = [f.split('_')[-1].split('.')[0] for f in tiff_files]
+        self.year_stamps = list(dict.fromkeys(self.year_stamps_all)) # added to extract only unique timestamps
+        print("Considered unique timestamps of LULC data are:","".join(str(self.year_stamps)))
+        # TODO - to make it more flexible - to extract 4 consecutive numbers instead
             
     def reproject_pa_data(self, target_crs:str, filter_by_year:bool=True) -> None:
         """
@@ -45,7 +74,7 @@ class PARasterizer:
 
         Args:
             target_crs (str): The target CRS to reproject the protected areas.
-            filter_by_year (bool): Filter protected areas by the year of establishment (default is True).
+            filter_by_year (bool): Filter protected areas by the year of establishment (default is True). # TODO - should be moved to the main.py
 
         Returns:
             None: prints the path/paths to the saved GeoPackage file.
@@ -54,32 +83,52 @@ class PARasterizer:
         if filter_by_year:
             # create an empty dictionary to store subsets
             subsets_dict = {}
+
             # loop through each year_stamp and create subsets
             for year_stamp in self.year_stamps:
-                # filter Geodataframe based on the year_stamp
-                subset = self.gdf[self.gdf['year'] <= np.datetime64(str(year_stamp))]
+                # loop through each geodataframe (layer of geopackage)
+                for layer, gdf in self.gdfs.items():
+                    print(f"Processing {layer}...")
 
-                # store subset in the dictionary with year_stamp as key
-                subsets_dict[year_stamp] = subset
+                    # check if gdf is empty or the 'year' column is missing (neigbouring countries without protected areas in bounding box)
+                    if gdf.empty:
+                        print(f"Skipping {layer} because it is empty.")
+                        continue  # skip to the next layer
+                    if 'year' not in gdf.columns:
+                        print(f"Skipping {layer} because the 'year' column is missing.")
+                        continue  # skip to the next layer
 
-                # print key-value pairs of subsets 
-                print(f"Protected areas are filtered according to year stamps of LULC and PAs' establishment year: {year_stamp}")
+                    # filter Geodataframe based on the year_stamp
+                    subset = gdf[gdf['year'] <= np.datetime64(str(year_stamp))]
 
-                # reproject geodataframe to the CRS of input rastser dataset
-                subset = subset.to_crs(target_crs)
+                    # store subset in the dictionary with year_stamp as key
+                    subsets_dict[year_stamp] = subset
 
-                # ADDITIONAL BLOCK IF EXPORT TO GEOPACKAGE IS NEEDED (currently needed as rasterizing vector data is not possible with geodataframes)
-                ## save filtered subset to a new GeoPackage
-                subset.to_file(os.path.join(self.output_dir,f"pas_{year_stamp}.gpkg"), driver='GPKG')
-                print(f"Filtered protected areas are written to:",os.path.join(self.output_dir,f"pas_{year_stamp}.gpkg"))
+                    # print key-value pairs of subsets 
+                    print(f"Protected areas are filtered according to year stamps of LULC and PAs' establishment year: {year_stamp}")
+
+                    # reproject geodataframe to the CRS of input rastser dataset
+                    subset = subset.to_crs(target_crs)
+
+                    # ADDITIONAL BLOCK IF EXPORT TO GEOPACKAGE IS NEEDED (currently needed as rasterizing vector data is not possible with geodataframes)
+                    ## save filtered subset to a new GeoPackage
+                    subset.to_file(os.path.join(self.output_dir,f"pas_{year_stamp}.gpkg"), driver='GPKG')
+                    print(f"Filtered protected areas are written to:",os.path.join(self.output_dir,f"pas_{year_stamp}.gpkg"))
 
             print ("---------------------------")
         else:
-            # reproject geodataframe to the CRS of input raster dataset
-            self.gdf = self.gdf.to_crs(target_crs)
-            # save the reprojected geodataframe to a new GeoPackage
-            self.gdf.to_file(os.path.join(self.output_dir, "pa.gpkg"), driver='GPKG')
-            print(f"Protected areas are written to:",os.path.join(self.output_dir, "pa.gpkg"))
+            for layer, gdf in self.gdfs.items():
+                print(f"Processing {layer}...")
+
+                if gdf.empty:
+                    print(f"Skipping {layer} because it is empty.")
+                    continue  # skip to the next layer
+
+                # reproject geodataframe to the CRS of input raster dataset
+                gdf = gdf.to_crs(target_crs)
+                # save the reprojected geodataframe to a new GeoPackage
+                gdf.to_file(os.path.join(self.output_dir, "pa.gpkg"), driver='GPKG')
+                print(f"Protected areas are written to:",os.path.join(self.output_dir, "pa.gpkg"))
         
     def rasterize_pa(self, lulc_metadata:RasterMetadata, vector_filepath:str, output_filepath:str):
         """
@@ -137,6 +186,13 @@ class PARasterizer:
             pa_years = [f for f in os.listdir(self.output_dir) if f.endswith('.gpkg')]
             # list all rasterized subsets of protected areas by the year of establishment (output files)
             pa_yearly_rasters = [f.replace('.gpkg', '.tif') for f in pa_years]
+
+            # NOTE - DEBUG
+            '''
+            print(self.output_dir)
+            print(pa_years)
+            print(pa_yearly_rasters)
+            '''
 
             # loop through each pa subset and rasterize it
             for reprojected_pa, output_path in zip(pa_years, pa_yearly_rasters):

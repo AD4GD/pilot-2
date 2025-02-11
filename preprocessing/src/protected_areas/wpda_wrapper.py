@@ -94,7 +94,7 @@ class WDPAWrapper():
         Args:
             merged_gpkg (str): The file name to the merged GeoPackage file.
             lulc_dir (str): The path to the directory containing the LULC raster data.
-            pa_to_yearly_rasters (bool): Rasterize the protected areas by year of establishment (default is True).
+            pa_to_yearly_rasters (bool): Rasterize the protected areas by year of establishment (default is True). # TODO - move to main.py
         Returns:
             None
         """
@@ -103,9 +103,9 @@ class WDPAWrapper():
         raster_output_dir = os.path.join(self.pa_output_dir, "pa_rasters")
         os.makedirs(raster_output_dir, exist_ok=True)
 
-        rp = PARasterizer(gpkg, lulc_dir ,raster_output_dir)
+        rp = PARasterizer(gpkg, lulc_dir,raster_output_dir)
         rp.reproject_pa_data(rp.lulc_metadata.crs_info["epsg"],filter_by_year=pa_to_yearly_rasters)
-        rp.rasterize_pa_geopackage(rp.lulc_metadata, pa_to_yearly_rasters=True ,keep_intermediate_gpkg=False) 
+        rp.rasterize_pa_geopackage(rp.lulc_metadata, pa_to_yearly_rasters=True, keep_intermediate_gpkg=False) 
 
     def sum_lulc_pa_rasters(self,input_path:str="data/input",output_path:str="data/output", lulc_path:str="lulc", lulc_with_null_path:str="lulc_temp", pa_path:str="pa_rasters", lulc_upd_compr_path:str="lulc_pa") -> None:
         """

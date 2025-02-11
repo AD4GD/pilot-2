@@ -106,7 +106,7 @@ class WDPAPreprocessor():
         This function sends a request to the ohsome API to get the country code from a given bounding box
 
         Args:
-            bbox (str): bounding box in the format 'x_min,y_min,x_max,y_max'
+            bbox (str): bounding box in the format 'x_min,y_min,x_max,y_max'. It should be 'lon_min','lat_min',lon_max','lat_max'
             output_path (str): path to save the geojson file
 
         Returns:
@@ -116,6 +116,7 @@ class WDPAPreprocessor():
         data = {"bboxes": {bbox}, "filter": "boundary=administrative and admin_level=2", "properties": 'tags'}
         response = requests.post(url, data=data)
 
+        
         # check if the request was successful
         if response.status_code == 200:
             response_json = response.json()
@@ -140,7 +141,7 @@ class WDPAPreprocessor():
         else:
             raise Exception(f"Error: {response.status_code}")
 
-        
+        # TODO - raise warning if no countries in the respnse but request is successful
         
     def fetch_lulc_country_codes(self, output_path:str) -> dict[set]:
         """
@@ -157,6 +158,6 @@ class WDPAPreprocessor():
         lulc_country_codes = {}
         lulc = self.lulc_series[0]
         x_min, y_min, x_max, y_max = RasterTransform(lulc).bbox_to_WGS84(print_details=self.verbose)
-        bbox = f"{x_min},{y_min},{x_max},{y_max}"
+        bbox = f"{y_min},{x_min},{y_max},{x_max}" # changed! Ohsome API requires: 'lon_min','lat_min',lon_max','lat_max'
         lulc_country_codes[lulc] = self.get_country_code_from_bbox(bbox, output_path)
         return lulc_country_codes
