@@ -3,7 +3,7 @@
 ## INPUT DATASETS
 
 # land-use/land-cover (GeoTIFF)
-lulc: 'lulc_albera_ext_concat_upd_{year}.tif' # ESA dataset: 'lulc_esa_{year}.tif'. NE Catalonia: 'lulc_ext_concat_upd_{year}.tif'
+lulc: 'lulc_albera_ext_concat_year}.tif' # ESA dataset: 'lulc_esa_{year}.tif'. NE Catalonia: 'lulc_ext_concat_upd_{year}.tif'
 # yearstamp of raster dataset to be enriched with vector data
 year: 2017
 # LULC codes of corresponding vector data (all parameters are optional)
@@ -13,7 +13,7 @@ lulc_codes:
     lulc_water: 2 # ESA dataset: 1.  NE Catalonia: 2
     
 # landscape impedance based on LULC dataset
-impedance_tif: 'impedance_lulc_albera_ext_concat_upd_{year}.tif' # added 'impedance_' prefix. For ESA dataset: 'impedance_lulc_esa_{year}.tif'.  NE Catalonia: 'impedance_lulc_ext_concat_upd_{year}.tif'
+impedance_tif: 'impedance_lulc_albera_ext_concat_{year}.tif' # added 'impedance_' prefix. For ESA dataset: 'impedance_lulc_esa_{year}.tif'.  NE Catalonia: 'impedance_lulc_ext_concat_upd_{year}.tif'
 # input auxiliary csv data (reclassification table)
 impedance: 'lulc_descr_albera.csv' # to fetch table with LULC types mapping with impedance values. For ESA dataset: 'lulc_descr_esa.csv'. NE Catalonia: 'lulc_descr_albera.csv'
 
