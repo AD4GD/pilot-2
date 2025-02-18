@@ -66,43 +66,46 @@ class ImpedanceWrapper():
 
         
 
-    def validate_impedance_config(self, impedance_stressors:dict) -> bool:
+    def validate_impedance_config(self, impedance_stressors:dict) -> str:
         """
         Validate the impedance configuration file for the stressors.
 
         Args:
             impedance_stressors (dict): The dictionary of stressors, mapping stressor raster path to YAML alias.
         Returns:
-            bool: True if the configuration file is valid, False otherwise.
+            str: return 'exit' if the configuration file is valid, error message otherwise.
         """
 
         validation_config = load_yaml(self.config_impedance_path)
-        error_flag = False
+        err_msg = ""
         for yaml_stressor in impedance_stressors.keys():
             # use params_placeholder to validate if each stressor has all the required parameters and datatypes
             stressor_params = find_stressor_params(validation_config, yaml_stressor)
-
-            for key, value in stressor_params.items():        
+            print(f"Validating stressor: {stressor_params}") # debug
+            for key, value in stressor_params.items(): 
                 if key not in self.params_placeholder:
-                    warnings.warn(f"Parameter {key} not found in the placeholder. Please update the configuration file.")
-                    error_flag = True
-                elif not isinstance(value, type(self.params_placeholder[key])):
-                    datatype = type(self.params_placeholder[key])
-                    warnings.warn(f"Parameter {key} has a different datatype. Expected {datatype} but got {type(value)}.")
-                    error_flag = True
+                    err_msg += f"Parameter {key} is not a valid key name.\n"
 
-            # check if all parameters are present
-            if len(stressor_params) != len(self.params_placeholder):
-                # check if all keys are present in the configuration file
-                for key in self.params_placeholder.keys():
-                    if key not in stressor_params:
-                        warnings.warn(f"Parameter {key} is missing from the configuration file. Please update the configuration file.")
-                        error_flag = True
+                elif type(self.params_placeholder[key]) is dict:
+                    value_dict = value
+                    # get first key from the dictionary
+                    nested_key = list(value_dict.keys())[0]
+                    # get the value of the nested key from params_placeholder
+                    expected_data = self.params_placeholder[key][nested_key]
+                    actual_data = value_dict[nested_key]
+                    if not isinstance(actual_data, type(expected_data)):
+                        err_msg += f"Parameter {key}:{nested_key} has a different datatype. Expected {type(expected_data)} but got {type(actual_data)}.\n"
 
-            if error_flag:
-                return False
+            # check if all keys are present in the configuration file
+            for key in self.params_placeholder.keys():
+                if key not in stressor_params:
+                    err_msg += f"Parameter {key} is missing from the configuration file.\n"
+
+            if err_msg != "":
+                return err_msg
             else:
-                return True
+                self.config_impedance = validation_config
+                return "exit"
 
     def get_impedance_max_value(self, year:int) -> tuple[gdal.Dataset, float]:
         """

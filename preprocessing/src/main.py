@@ -2,6 +2,7 @@ import typer
 from typing_extensions import Annotated
 from rich.console import Console
 from rich import print
+from cli_markdown import print_table
 import os
 from protected_areas.wpda_wrapper import WDPAWrapper
 from osm.osm_wrapper import OSMWrapper
@@ -40,11 +41,12 @@ def process_wdpa(
     auto_confirm: Annotated[bool, typer.Option("--force", "-f", help="Auto confirm all prompts")] = False,
     skip_fetch: Annotated[bool, typer.Option("--skip-fetch", "-s", help="Skip fetching protected areas")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
-    record_time: Annotated[bool, typer.Option("--record_time", "-t", help="Record execution time")] = True
+    record_time: Annotated[bool, typer.Option("--record_time", "-t", help="Record execution time")] = False,
+    use_yearly_pa_rasters: Annotated[bool, typer.Option("--use-yearly-pa", "-u", help="use a specific PA year to update LULC or use all years")] = False
 ):
     """
     Preprocess data on protected areas for each year of LULC data.
-    Example usage: python main.py process-wdpa --config-dir ./config --force --skip-fetch --verbose
+    Example usage: python main.py process-wdpa --config-dir ./config --force --skip-fetch --verbose --record_time
     
     Args:
         config_dir (str): Directory containing the configuration file.
@@ -72,7 +74,7 @@ def process_wdpa(
 
         # prompt the user to confirm the countries to fetch.
         if auto_confirm == False:
-            confirm = typer.confirm("Type 'yes' or 'y' to confirm API fetch for the above countries?")
+            confirm = typer.confirm("To confirm the processing of PA data for the above countries TYPE")
             if not confirm:
                 err_console.print("Exiting...")
                 raise typer.Exit(code=1)
@@ -83,7 +85,7 @@ def process_wdpa(
 
         # STEP 3.0: Rasterize the merged GeoPackage file
         print("Rasterizing the merged GeoPackage file...")
-        wp.rasterize_protected_areas(merged_gpkg, os.path.join(working_dir,wp.config.get("lulc_dir")), pa_to_yearly_rasters=True)
+        wp.rasterize_protected_areas(merged_gpkg, os.path.join(working_dir,wp.config.get("lulc_dir")), pa_to_yearly_rasters=use_yearly_pa_rasters)
         
         # # STEP 4.0: Raster calculation
         print("Summing LULC and PA rasters...")
@@ -116,7 +118,7 @@ def process_osm(
     ):
     """
     Check if config exists. Fetches and translates Open Street Map data.
-    Example usage: python main.py process-osm --config-dir ./config --verbose --skip-fetch --del-temp
+    Example usage: python main.py process-osm --config-dir ./config --verbose --skip-fetch --del-temp --record_time
 
     Args:
         config_dir (str): Directory containing the configuration file.
@@ -269,11 +271,14 @@ def recalc_impedance(
         impedance_stressors = iw.process_impedance_config(year)
 
     # 2. Prompt user to update the configuration file
+    
+    # print the impedance stressors to the user in a table
+    print_table("Impedance stressors", impedance_stressors)
 
     message = typer.style(
-    "Please check/update the configuration file for impedance dataset (config_impedance.yaml). "
-    "Type 'yes' or 'y' to confirm your configuration of ecological parameters for these biodiversity stressors.",
-    fg=typer.colors.RED
+    "Please check/update the configuration file for impedance dataset (config_impedance.yaml).\n"
+    "To confirm your configuration of ecological parameters for these biodiversity stressors TYPE",
+    fg=typer.colors.YELLOW
     )
 
     confirm = typer.confirm(message) 
@@ -282,11 +287,23 @@ def recalc_impedance(
         err_console.print("Exiting...")
         raise typer.Exit(code=1)
 
-    # 2.1. Or validate after manual update 
-    is_valid = iw.validate_impedance_config(impedance_stressors)
+    # 2.1. validate impedance configuration
+    err_msg = ""
+    while err_msg != "exit":
+        err_msg = iw.validate_impedance_config(impedance_stressors)
+    
+        if err_msg != "exit":
+            #print warning message
+            print(f"""[bold yellow]The following errors was found in the configuration file:[/bold yellow]\n[bold red]{err_msg}[/bold red]""")
+            message = print("Please update your impedance configuration file then TYPE")
 
-    if not is_valid:
-        raise ValueError("The configuration file is not valid. Please update the configuration file.")
+            confirm = typer.confirm(message) 
+
+            if not confirm:
+                err_console.print("Exiting...")
+                raise typer.Exit(code=1)
+
+
     
     for year in iw.years:
         # 3.  Get the maximum value of the impedance raster dataset

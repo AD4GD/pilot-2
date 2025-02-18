@@ -187,7 +187,7 @@ class LULCImpedanceProcessor(ImpedanceConfigurationHandler):
 
             # else the lulc code setting alreay exists, so retain it
             else:
-                print(f"Settings for LULC code {lulc_code} are filled in the YAML file.")
+                print(f"Settings for LULC code {lulc_code} already exists in the YAML file.")
                 self.initial_lulc[lulc_code_str] = self.config_impedance['initial_lulc'][lulc_code_str]
             # adding the raster structure to self.config_impedance
             self.config_impedance['initial_lulc'] = self.initial_lulc

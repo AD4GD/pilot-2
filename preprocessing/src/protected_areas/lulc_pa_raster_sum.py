@@ -5,12 +5,12 @@ from rich import print
 class LulcPaRasterSum():
 
     def __init__(self, 
-        input_path:str="data/input",
-        output_path:str="data/output",
-        lulc_path:str="lulc", 
-        lulc_with_null_path:str="lulc_temp",
-        pa_path="pa_rasters", 
-        lulc_upd_compr_path:str="lulc_pa" 
+        input_path:str,
+        output_path:str,
+        lulc_path:str, 
+        lulc_with_null_path:str,
+        pa_path:str, 
+        lulc_upd_compr_path:str
     ):
         """
         Initialize the combine_rasters class
@@ -25,7 +25,7 @@ class LulcPaRasterSum():
 
         """
         
-        self.lulc_path = os.path.join(input_path, lulc_path)
+        self.lulc_path = os.path.join(input_path, "lulc" ,lulc_path)
         self.lulc_with_null_path = self.make_directory_if_not_exists(os.path.join(input_path,"protected_areas", lulc_with_null_path))
 
         self.lulc_upd_compr_path = self.make_directory_if_not_exists(os.path.join(output_path, "protected_areas", lulc_upd_compr_path))
@@ -97,6 +97,6 @@ class LulcPaRasterSum():
 
 # Example usage
 if __name__ == "__main__":
-    lprs = LulcPaRasterSum()
+    lprs = LulcPaRasterSum("data/input","data/output",'lulc_albera_ext_concat_{year}.tif', "lulc_temp", "pa_rasters", "lulc_pa")
     lprs.assign_no_data_values()
     lprs.combine_pa_lulc()

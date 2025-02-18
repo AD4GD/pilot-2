@@ -107,14 +107,13 @@ class WDPAWrapper():
         rp.reproject_pa_data(rp.lulc_metadata.crs_info["epsg"],filter_by_year=pa_to_yearly_rasters)
         rp.rasterize_pa_geopackage(rp.lulc_metadata, pa_to_yearly_rasters=True, keep_intermediate_gpkg=False) 
 
-    def sum_lulc_pa_rasters(self,input_path:str="data/input",output_path:str="data/output", lulc_path:str="lulc", lulc_with_null_path:str="lulc_temp", pa_path:str="pa_rasters", lulc_upd_compr_path:str="lulc_pa") -> None:
+    def sum_lulc_pa_rasters(self,input_path:str="data/input",output_path:str="data/output", lulc_with_null_path:str="lulc_temp", pa_path:str="pa_rasters", lulc_upd_compr_path:str="lulc_pa") -> None:
         """
         Sum the LULC and PA raster data.
 
         Args:
             input_path (str): The path to the input directory.
             output_path (str): The path to the output directory.
-            lulc_path (str): The path to the LULC raster data.
             lulc_with_null_path (str): The path to the LULC raster data with zeros.
             lulc_upd_compr_path (str): The path to the combined LULC and PA raster data.
             pa_path (str): The path to the PA raster data.
@@ -122,7 +121,7 @@ class WDPAWrapper():
         Returns:
             None
         """
-
+        lulc_path = os.path.join(input_path, "lulc", self.config.get("lulc"))
         lprs = LulcPaRasterSum(input_path,output_path,lulc_path, lulc_with_null_path, pa_path, lulc_upd_compr_path)
         lprs.assign_no_data_values()
         lprs.combine_pa_lulc()
