@@ -12,13 +12,18 @@ import time
 
 # TODO - to add the function that can create impedance dataset based on csv table if user doesn't have it yet. So, the function can be used as option in 1,3 and 4th commands independently.
 # TODO - to put recurring time captures to the separate function? (or use local module timing)
-
 err_console = Console(stderr=True, style="bold red")
 
 app = typer.Typer(
     name="Data4Land CLI",
     help="CLI tool for preprocessing and enriching land-use/land-cover data.",
 )
+
+#TODO makea config validator script
+# e.g 
+# if self.input_folder is None:
+#     raise ValueError("LULC directory is null or not found in the configuration file.")
+
 
 def check_file_exists(filePath:str):
     """
@@ -38,11 +43,12 @@ def check_file_exists(filePath:str):
 @app.command("process-wdpa")
 def process_wdpa(
     config_dir: Annotated[str, typer.Option(..., help="Directory with the configuration file")] = "./config",
+    enrich_with_one_year: Annotated[bool, typer.Option("--enrich-single-year", "-e", help="use a specific PA year to update LULC or use all years")] = False,
     auto_confirm: Annotated[bool, typer.Option("--force", "-f", help="Auto confirm all prompts")] = False,
     skip_fetch: Annotated[bool, typer.Option("--skip-fetch", "-s", help="Skip fetching protected areas")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
     record_time: Annotated[bool, typer.Option("--record_time", "-t", help="Record execution time")] = False,
-    use_yearly_pa_rasters: Annotated[bool, typer.Option("--use-yearly-pa", "-u", help="use a specific PA year to update LULC or use all years")] = False
+
 ):
     """
     Preprocess data on protected areas for each year of LULC data.
@@ -50,6 +56,7 @@ def process_wdpa(
     
     Args:
         config_dir (str): Directory containing the configuration file.
+        enrich_with_one_year (bool): Use a specific PA year to update LULC or use all years. #TODO rename this?
         auto_confirm (bool): Auto confirm all prompts.
         skip_fetch (bool): Skip fetching protected areas data from the API.
         verbose (bool): Verbose mode.
@@ -65,6 +72,10 @@ def process_wdpa(
     try:
         working_dir = os.getcwd()
         wp = WDPAWrapper(working_dir, config_path, verbose=verbose)
+        
+        # get the case study directory
+        case_study_dir = str(wp.config.get("case_study_dir"))
+        case_study = case_study_dir.split("/")[-1]
 
         # # STEP 1.0: Get the unique country codes from the LULC raster data
         country_codes = wp.get_lulc_country_codes() # returns {"GBR"} 
@@ -81,15 +92,21 @@ def process_wdpa(
         
         # # STEP 2.0: Fetch and process the protected areas for the selected countries
         print("Fetching protected areas for the selected countries...")
-        merged_gpkg = wp.protected_area_to_merged_geopackage(country_codes, "merged_pa.gpkg", skip_fetch)
+        # strip case study name from data/{case_study}
+        merged_gpkg = case_study + "_merged_pa.gpkg"
+        merged_gpkg = wp.protected_area_to_merged_geopackage(country_codes, merged_gpkg, skip_fetch)
 
-        # STEP 3.0: Rasterize the merged GeoPackage file
+        # # STEP 3.0: Rasterize the merged GeoPackage file
         print("Rasterizing the merged GeoPackage file...")
-        wp.rasterize_protected_areas(merged_gpkg, os.path.join(working_dir,wp.config.get("lulc_dir")), pa_to_yearly_rasters=use_yearly_pa_rasters)
+        lulc_dir = os.path.join(working_dir, case_study_dir, wp.config.get("lulc_dir"))
+        wp.rasterize_protected_areas(merged_gpkg, lulc_dir, enrich_with_one_year)
         
         # # STEP 4.0: Raster calculation
         print("Summing LULC and PA rasters...")
-        wp.sum_lulc_pa_rasters()
+        wp.sum_lulc_pa_rasters(
+            input_path=os.path.join(working_dir, case_study_dir, "input"),
+            output_path=os.path.join(working_dir, case_study_dir, "output"),
+        )
 
         # # STEP 5.0: Reclassify input raster with impedance values
         print("Reclassifying the raster with impedance values...")
@@ -97,7 +114,7 @@ def process_wdpa(
 
         # # STEP 6: Compute affinity
         print("Computing affinity")
-        wp.compute_affinity(os.path.join(working_dir, "data", "output", "affinity"))
+        wp.compute_affinity(os.path.join(working_dir, case_study_dir, "output", "affinity"))
 
     except Exception as e:
         err_console.print(f"Error: {e}")

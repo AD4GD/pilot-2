@@ -36,12 +36,16 @@ user_vector: null # derived from other sources and provided by users ('null' by 
 
 ## PATHS TO DIRECTORIES
 # recommended to leave as default
-input_dir: 'data/input'
-lulc_dir: 'data/input/lulc'
-vector_dir: 'data/input/vector'
-impedance_dir: 'data/input/impedance'
-output_dir: 'data/output'
-stressors_dir: 'data/output/stressors'
+# input_dir: 'input'
+lulc_dir: 'input/lulc'
+vector_dir: 'input/vector'
+impedance_dir: 'input/impedance'
+# output_dir: 'output'
+stressors_dir: 'output/stressors'
+case_study_dir: 'data/case_study_albera' # prefix (directory name) for the case study's input and output files
+sub_case_study: '' # LEAVE EMPTY if there is no sub-case study. Otherwise, specify the sub-case study name (e.g. 'turtle')
+# when case studies share the same LULC file, but different impedance files (e.g. 'turtle' and 'bird') we can use this parameter to get each impedance file
+
 
 ## 1st component
 # Protected Planet API

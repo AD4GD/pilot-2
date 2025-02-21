@@ -25,7 +25,7 @@ class LulcPaRasterSum():
 
         """
         
-        self.lulc_path = os.path.join(input_path, "lulc" ,lulc_path)
+        self.lulc_path = os.path.join(input_path, lulc_path)
         self.lulc_with_null_path = self.make_directory_if_not_exists(os.path.join(input_path,"protected_areas", lulc_with_null_path))
 
         self.lulc_upd_compr_path = self.make_directory_if_not_exists(os.path.join(output_path, "protected_areas", lulc_upd_compr_path))

@@ -3,6 +3,7 @@ import json
 import requests
 import subprocess
 from .pa_processor import PAProcessor
+from rich import print as rprint
 
 class PAProcessorWrapper:
     """
@@ -27,31 +28,60 @@ class PAProcessorWrapper:
         self.output_dir = output_dir
         self.processors = {country: PAProcessor(country) for country in countries}
 
-    def process_all_countries(self) -> None:
+    def process_all_countries(self, skip_fetch:bool, retry_limit:int=3) -> None:
         """
         Fetches all PAs for each country and processes them into a single GeoJSON file.
+
+        Args:
+            skip_fetch (bool): A boolean value to skip fetching the PAs if they have already been fetched
+            retry_limit (int): The number of times to retry fetching the data if a server error occurs.
         """
-        all_protected_area_geojson = []
+       
         for country in self.countries:
+            protected_area_data = []
+            if skip_fetch:
+                # check if the GeoJSON file already exists
+                geojson_file = os.path.join(self.output_dir, f"{country}_protected_areas.geojson")
+                if os.path.exists(os.path.join(self.output_dir, geojson_file)):
+                    print(f"GeoJSON file already exists for {country}, therefore skipping fetch")
+                    #remove the processor for the country
+                    del self.processors[country]
+                    continue
+
+            # else we fetch the PA data for the country until we get an empty response
             page = 0
-            url = self.api_url.format(country=country, token=self.token, marine=self.marine)
-            url += f"&page={page}"
-            response = requests.get(url)
-            if response.status_code != 200:
-                print(f"Error: {response.status_code}")
-                continue
-            data = response.json()
-            protected_areas = data["protected_areas"]
-            if len(protected_areas) == 0:
-                print(f"No protected areas found for {country}")
-                break
-            else:
-                all_protected_area_geojson.append(data)
-                page += 1
-                continue
-        # combine all the protected areas into a single feature collection / GeoJSON
-        for data in all_protected_area_geojson:
-            self.processors[country].add_PA_to_feature_collection(data["protected_areas"]) 
+            page_logs = {}
+            while True:
+                url = self.api_url.format(country=country, token=self.token, marine=self.marine)
+                url += f"&page={page}"
+                response = requests.get(url)
+                #if the error is client side, we should stop the loop
+                if response.status_code >= 400 and response.status_code < 500:
+                    raise Exception(f"Error ({response.status_code}):, {response.text}")
+                #if it's a server side error, we should try this page again up to retry_limit times
+                elif response.status_code >= 500:
+                    if page_logs[page] > retry_limit:
+                        rprint(f"[bold red] Failed to fetch data for {country} at page {page} after 3 attempts [/bold red]")
+                        rprint(f"[bold yellow] Skipping to next page [/bold yellow]")
+                        page += 1
+                        continue
+                
+                #if the response is successful, we should process the data
+                elif response.status_code == 200:
+                    data = response.json()
+                    protected_areas = data["protected_areas"]
+                    if len(protected_areas) == 0:
+                        print(f"No protected areas found for {country}")
+                        break # exit the loop if no protected areas are found
+                    else:
+                        protected_area_data.append(data)
+                        page += 1
+                        continue
+                #TODO What should be done if we get any other codes?
+
+            # combine all the protected areas into a single feature collection / GeoJSON
+            for data in protected_area_data:
+                self.processors[country].add_PA_to_feature_collection(data["protected_areas"]) 
 
     def save_all_country_geoJSON(self) -> list[str]:
         """
@@ -63,7 +93,9 @@ class PAProcessorWrapper:
         
         geojson_filepaths = []
         for country in self.countries:
-            geojson_filepaths.append(self.processors[country].save_to_file(self.output_dir))
+            pa_processor = self.processors.get(country, None)
+            if pa_processor is not None:
+                geojson_filepaths.append(pa_processor.save_to_file(self.output_dir))
         return geojson_filepaths
     
 

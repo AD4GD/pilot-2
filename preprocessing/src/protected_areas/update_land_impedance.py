@@ -25,36 +25,29 @@ class UpdateLandImpedance():
         self.config = config
 
         # read input folder for LULC data
-        self.input_folder = self.config.get('lulc_dir', None)
-        if self.input_folder is None:
-            raise ValueError("LULC directory is null or not found in the configuration file.")
-
+        self.input_folder = os.path.join(self.config.get("case_study_dir"), self.config.get('lulc_dir'))
+        self.lulc_pa_dir = os.path.join(self.config.get("case_study_dir"), "output", "protected_areas", "lulc_pa")
         # read impedance_dir as the output folder
-        self.output_folder = self.config.get('impedance_dir', None)
-        if self.output_folder is None:
-            raise ValueError("Impedance directory is null or not found in the configuration file.")
+        self.impedance_dir = os.path.join(self.config.get("case_study_dir"), self.config["sub_case_study"] + self.config.get('impedance_dir'))
 
         # read flag on reclassification table (lulc-impedance) from configuration file (true or false)
         # TODO - explicitly specify in CLI process-wdpa
-        self.lulc_reclass_table = self.config.get('lulc_reclass_table', None)
-        if self.lulc_reclass_table is None:
-            warnings.warn("Flag on the usage of reclassification table is not found.")
+        self.lulc_reclass_table = self.config.get('lulc_reclass_table')
+        #TODO move to config validator
+        # if self.lulc_reclass_table is None:
+        #     warnings.warn("Flag on the usage of reclassification table is not found.")
 
         # read reclassification table (impedance) file with the reclassification table
-        self.impedance_reclass_table = self.config.get('impedance', None)
-        if self.impedance_reclass_table is None:
-            raise ValueError("File with reclassification table for impedance is null or not found in the configuration file.")
-
-        # read effect of protected areas (positive effect of protected areas on landscape impedance)
-        self.pa_effect = self.config.get('pa_effect', None)
-        if self.impedance_reclass_table is None:
-            warnings.warn("Effect of protected areas (multiplier) to refine landscape impedance is null or not found in the configuration file. If you do not specify the effect please ensure the compatibility of your reclassification table.")
+        self.impedance_reclass_table = os.path.join(self.config.get("case_study_dir"), self.config["sub_case_study"] + self.config.get('impedance_dir'), self.config.get('impedance'))
         
-
-        os.makedirs(self.output_folder, exist_ok=True)
+        # read effect of protected areas (positive effect of protected areas on landscape impedance)
+        self.pa_effect = self.config.get('pa_effect',None)
+        # #TODO move to config validator
+        # if self.pa_effect is None:
+        #     warnings.warn("Effect of protected areas (multiplier) to refine landscape impedance is null or not found in the configuration file. If you do not specify the effect please ensure the compatibility of your reclassification table.")
         
         self.tiff_files = [f for f in os.listdir(self.input_folder) if f.endswith('_pa.tif')] # ADDED SUFFIX (UPDATED LULC)
-        self.impedance_files = [f for f in os.listdir(self.output_folder) if f.endswith('.tif')] # IMPEDANCE DATASET
+        self.impedance_files = [f for f in os.listdir(self.impedance_dir) if f.endswith('.tif')] # IMPEDANCE DATASET
         print(f"Impedance files are: {self.impedance_files}")
 
 
@@ -62,9 +55,8 @@ class UpdateLandImpedance():
         """
         Updates the impedance dataset based on the reclassification table or the multiplier effect of protected areas.
         """
-        # intialise the path variable to the reclassification table
-        path_to_reclass_table = os.path.join(self.output_folder, self.impedance_reclass_table)
-         # 1. If user wants to use reclassification table to update impedance dataset
+
+        # 1. If user wants to use reclassification table to update impedance dataset
         if self.lulc_reclass_table is True:
             print ("Impedance dataset is being updated by the reclassification table...")
             for tiff_file in self.tiff_files:
@@ -72,10 +64,10 @@ class UpdateLandImpedance():
                 print(tiff_file)
                 # modify the output raster filename to ensure it's different from the input raster filename
                 output_filename = "impedance_" + tiff_file
-                output_raster_path = os.path.join(self.output_folder, output_filename)
+                output_raster_path = os.path.join(self.impedance_dir, output_filename)
 
                 # call function and capture data_type for compression - Float32 or Int32
-                data_type = self.reclassify_raster(input_raster_path, output_raster_path, path_to_reclass_table)
+                data_type = self.reclassify_raster(input_raster_path, output_raster_path, self.impedance_reclass_table)
                 print ("Data type used to reclassify LULC as impedance is",data_type)
 
                 # compression using 9999 as nodata
@@ -101,7 +93,12 @@ class UpdateLandImpedance():
         else:
             print ("Impedance dataset is being updated by the multiplier (PA effect)...")
             for impedance_file in self.impedance_files:
-                impedance_in_path = os.path.join(self.output_folder, impedance_file)
+                impedance_in_path = os.path.join(self.impedance_dir, impedance_file)
+                # NOTE: If output_file already exists from a previous run, delete it to avoid errors with naming
+                if impedance_file.endswith('_pa.tif'):
+                    # remove the file 
+                    os.remove(impedance_in_path)
+                    continue
                 base_name, extension = os.path.splitext(impedance_file)
 
                 # get the corresponding LULC file for this impedance file
@@ -109,12 +106,10 @@ class UpdateLandImpedance():
                 lulc_file = os.path.join(self.input_folder, lulc_file_base)
 
                 # modify the output raster filename to ensure it's different from the input raster filename
-                # NOTE: If output_file already exists from a previous run, delete it to avoid errors with naming
-                # TODO: somehow avoid these impedance file with '_pa' extension in this loop
                 output_file = f"{base_name}_pa{extension}"
-                impedance_out_path = os.path.join(self.output_folder, output_file)
+                impedance_out_path = os.path.join(self.impedance_dir, output_file)
 
-                data_type = self.apply_multiplier(impedance_in_path, impedance_out_path, lulc_file, path_to_reclass_table, self.pa_effect)
+                data_type = self.apply_multiplier(impedance_in_path, impedance_out_path, lulc_file, self.impedance_reclass_table, self.pa_effect)
                 print ("Data type used to update",data_type)
 
                 # compression using 9999 as nodata
@@ -185,7 +180,7 @@ class UpdateLandImpedance():
         impedance_ds = None
         lulc_pa_ds = None
         out_impedance_ds = None
-        print(f"Multiplier has been applied to impedance dataset. Output saved to: {self.output_folder}")
+        print(f"Multiplier has been applied to impedance dataset. Output saved to: {self.impedance_dir}")
 
         return (data_type)
     

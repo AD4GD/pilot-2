@@ -52,6 +52,8 @@ class WDPAPreprocessor():
         self.lulc_dir = self.config.get('lulc_dir', None)
         if self.lulc_dir is None:
             raise ValueError("LULC directory is null or not found in the configuration file.")
+        else:
+            self.lulc_dir = os.path.join(self.config.get('case_study_dir'), self.lulc_dir)
 
         # get all existing files
         self.lulc_series = self.get_all_existing_files(self.lulc_templates, self.years)
@@ -149,7 +151,6 @@ class WDPAPreprocessor():
         Since the LULC rasters have the same extent, we only need to fetch the country codes for one raster.
 
         Args:
-            save_geojson (bool): save the geojson file (default is True)
             output_path (str): path to save the geojson file (optional)
 
         Returns:

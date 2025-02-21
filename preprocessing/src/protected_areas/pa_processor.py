@@ -62,7 +62,7 @@ class PAProcessor:
             # extract geometry
             geometry = pa.get('geojson', {}).get('geometry')
 
-
+            # TODO change this dubgging to only check first page? and work on verbose flag
             # debugging, print the geometry data
             if geometry is None:
                 print(f"Warning: No geometry found for protected area {pa.get('name')} with ID {pa.get('id')}")
