@@ -25,7 +25,7 @@ class UpdateLandImpedance():
         self.config = config
 
         # read input folder for LULC data
-        self.input_folder = os.path.join(self.config.get("case_study_dir"), self.config.get('lulc_dir'))
+        self.lulc_dir = self.config.get('lulc_dir')
         self.lulc_pa_dir = os.path.join(self.config.get("case_study_dir"), "output", "protected_areas", "lulc_pa")
         # read impedance_dir as the output folder
         self.impedance_dir = os.path.join(self.config.get("case_study_dir"), self.config["sub_case_study"] + self.config.get('impedance_dir'))
@@ -46,7 +46,7 @@ class UpdateLandImpedance():
         # if self.pa_effect is None:
         #     warnings.warn("Effect of protected areas (multiplier) to refine landscape impedance is null or not found in the configuration file. If you do not specify the effect please ensure the compatibility of your reclassification table.")
         
-        self.tiff_files = [f for f in os.listdir(self.input_folder) if f.endswith('_pa.tif')] # ADDED SUFFIX (UPDATED LULC)
+        self.tiff_files = [f for f in os.listdir(self.lulc_dir) if f.endswith('_pa.tif')] # ADDED SUFFIX (UPDATED LULC)
         self.impedance_files = [f for f in os.listdir(self.impedance_dir) if f.endswith('.tif')] # IMPEDANCE DATASET
         print(f"Impedance files are: {self.impedance_files}")
 
@@ -60,7 +60,7 @@ class UpdateLandImpedance():
         if self.lulc_reclass_table is True:
             print ("Impedance dataset is being updated by the reclassification table...")
             for tiff_file in self.tiff_files:
-                input_raster_path = os.path.join(self.input_folder, tiff_file)
+                input_raster_path = os.path.join(self.lulc_dir, tiff_file)
                 print(tiff_file)
                 # modify the output raster filename to ensure it's different from the input raster filename
                 output_filename = "impedance_" + tiff_file
@@ -103,7 +103,7 @@ class UpdateLandImpedance():
 
                 # get the corresponding LULC file for this impedance file
                 lulc_file_base = impedance_file[len("impedance_"):]  # Removes 'impedance_'
-                lulc_file = os.path.join(self.input_folder, lulc_file_base)
+                lulc_file = os.path.join(self.lulc_dir, lulc_file_base)
 
                 # modify the output raster filename to ensure it's different from the input raster filename
                 output_file = f"{base_name}_pa{extension}"

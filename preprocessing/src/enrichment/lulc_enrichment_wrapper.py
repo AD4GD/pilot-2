@@ -33,10 +33,11 @@ class LULCEnrichmentWrapper():
         self.config = load_yaml(config_path)
         self.verbose = verbose
         self.working_dir = working_dir
-        self.vector_dir = self.config.get('vector_dir')
-        self.output_dir = self.config.get('output_dir')
+        self.case_study_dir = self.config.get('case_study_dir')
+        self.vector_dir = os.path.join(self.working_dir,self.case_study_dir,self.config.get('vector_dir'))
+        self.output_dir = os.path.join(self.working_dir,self.case_study_dir,self.config.get('output_dir'))
         # make a new stressors directory to store the outputs if it doesn't exist
-        self.stressors_dir = os.path.join(self.working_dir,self.config.get('stressors_dir'))
+        self.stressors_dir = os.path.join(self.working_dir,self.case_study_dir,self.config.get('stressors_dir'))
         if not os.path.exists(self.stressors_dir):
             os.makedirs(self.stressors_dir)
 

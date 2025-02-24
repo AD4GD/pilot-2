@@ -54,7 +54,7 @@ class WDPAWrapper():
         lulc_country_codes = set().union(*dict(lulc_ccp.fetch_lulc_country_codes(self.pa_output_dir)).values())
         return lulc_country_codes
     
-    def protected_area_to_merged_geopackage(self, lulc_country_codes:dict, output_file:str ="merged_pa.gpkg", skip_fetch:bool=False) -> str:
+    def protected_area_to_merged_geopackage(self, lulc_country_codes:dict, output_file:str, skip_fetch:bool=False) -> str:
         """
         For each unique country code, fetch and process the protected areas and merge them into a single GeoPackage file.
         API used fetches most up to date protected areas.
@@ -62,6 +62,7 @@ class WDPAWrapper():
         Args:
             lulc_country_codes (dict): A dictionary of unique country codes.
             output_file (str): The name of the output GeoPackage file.
+            skip_fetch (bool): A boolean value to skip fetching the PAs for countries that have an existing GeoJSON file.
         
         Returns:
             str: The path to the merged GeoPackage file.
@@ -85,6 +86,8 @@ class WDPAWrapper():
         # else:
         Pa_processor.process_all_countries(skip_fetch)
         geojson_filepaths = Pa_processor.save_all_country_geoJSON()
+        if not geojson_filepaths:
+            geojson_filepaths = [os.path.join(self.pa_geojson_dir, file) for file in os.listdir(self.pa_geojson_dir)]
 
         # merge all the GeoJSON files into a single GeoPackage file
         gpkg = Pa_processor.merge_geojsons_to_geopackage(geojson_filepaths, output_file)
@@ -102,26 +105,27 @@ class WDPAWrapper():
         Returns:
             None
         """
-        # Change this to false to use PAs from all years.
-        gpkg = os.path.join(self.pa_geojson_dir, merged_gpkg)
+ 
         raster_output_dir = os.path.join(self.pa_output_dir, "pa_rasters")
         os.makedirs(raster_output_dir, exist_ok=True)
 
-        rp = PARasterizer(gpkg, lulc_dir,raster_output_dir)
+        rp = PARasterizer(merged_gpkg, lulc_dir,raster_output_dir)
         rp.reproject_pa_data(rp.lulc_metadata.crs_info["epsg"],filter_by_year=pa_to_yearly_rasters)
         rp.rasterize_pa_geopackage(rp.lulc_metadata, pa_to_yearly_rasters, keep_intermediate_gpkg=False) 
 
-    def sum_lulc_pa_rasters(self,input_path:str,output_path:str) -> None:
+    def sum_lulc_pa_rasters(self,input_path:str, output_path:str, lulc_dir:str, use_yearly_pa_rasters:bool) -> None:
         """
         Sum the LULC and PA raster data.
 
         Args:
             input_path (str): The path to the input directory.
             output_path (str): The path to the output directory.
+            lulc_dir (str): The path to the directory containing the LULC raster data.
+            use_yearly_pa_rasters (bool): Use yearly PA rasters
         Returns:
             None
         """
-        lprs = LulcPaRasterSum(input_path,output_path,lulc_path="lulc", lulc_with_null_path="lulc_temp", pa_path="pa_rasters", lulc_upd_compr_path="lulc_pa")
+        lprs = LulcPaRasterSum(input_path,output_path,lulc_dir,use_yearly_pa_rasters,lulc_with_null_path="lulc_temp", pa_path="pa_rasters", lulc_upd_compr_path="lulc_pa")
         lprs.assign_no_data_values()
         lprs.combine_pa_lulc()
 
@@ -166,13 +170,17 @@ if __name__ == "__main__":
     country_codes = {'FRA', 'ESP'}
     print(f"Country protected areas to fetch: {country_codes}")
     merged_gpkg = case_study + "_merged_pa.gpkg"
-    wp.protected_area_to_merged_geopackage(country_codes, merged_gpkg, skip_fetch=True)
-    lulc_dir = os.path.join(working_dir, case_study_dir, wp.config.get("lulc_dir"))
-    wp.rasterize_protected_areas(merged_gpkg, lulc_dir, pa_to_yearly_rasters=True)
+    merged_gpkg = wp.protected_area_to_merged_geopackage(country_codes, merged_gpkg, skip_fetch=True)
+    lulc_dir = wp.config.get("lulc_dir")
+    wp.rasterize_protected_areas(merged_gpkg, lulc_dir, pa_to_yearly_rasters=False)
+
+    # delete the merged GeoPackage file
+    os.remove(merged_gpkg)
 
     wp.sum_lulc_pa_rasters(
         input_path=os.path.join(working_dir, case_study_dir, "input"),
         output_path=os.path.join(working_dir, case_study_dir, "output"),
+        lulc_dir=lulc_dir
     )
     wp.reclassify_raster_with_impedance()
     wp.compute_affinity(os.path.join(working_dir, case_study_dir, "output", "affinity"))
