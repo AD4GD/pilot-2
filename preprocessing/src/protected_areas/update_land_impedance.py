@@ -15,20 +15,21 @@ class UpdateLandImpedance():
     This class is responsible for updating the impedance dataset based on the reclassification table or the multiplier effect of protected areas.
     """
 
-    def __init__(self, config:dict) -> None:
+    def __init__(self, config:dict, working_dir:str) -> None:
         """
         Initialize the UpdateLandImpedance class.
 
         Args:
             config (dict): The configuration dictionary.
+            working_dir (str): The working directory.
         """
         self.config = config
 
         # read input folder for LULC data
         self.lulc_dir = self.config.get('lulc_dir')
-        self.lulc_pa_dir = os.path.join(self.config.get("case_study_dir"), "output", "protected_areas", "lulc_pa")
+        self.lulc_pa_dir = os.path.join(working_dir,self.config.get("case_study_dir"), "output", "protected_areas", "lulc_pa")
         # read impedance_dir as the output folder
-        self.impedance_dir = os.path.join(self.config.get("case_study_dir"), self.config["sub_case_study"] + self.config.get('impedance_dir'))
+        self.impedance_dir = os.path.join(working_dir,self.config.get("case_study_dir"), self.config["sub_case_study"] + self.config.get('impedance_dir'))
 
         # read flag on reclassification table (lulc-impedance) from configuration file (true or false)
         # TODO - explicitly specify in CLI process-wdpa

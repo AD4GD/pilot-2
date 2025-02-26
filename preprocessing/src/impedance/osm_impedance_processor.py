@@ -27,7 +27,7 @@ class OSMImpedanceProcessor(ImpedanceConfigurationHandler):
         super().__init__(config, config_impedance, params_placeholder, impedance_stressors, year, current_dir, output_dir)
 
         # additional directories
-        self.vector_dir = self.config.get('vector_dir')
+        self.vector_dir = os.path.join(self.config.get('case_study_dir'), self.config.get('vector_dir'))
 
         # load road/railway types from the configuration file from the 3rd notebook
         self.osm_stressor_path = osm_stressor_path

@@ -153,7 +153,7 @@ class WDPAWrapper():
         Returns:
             None
         """
-        uli = UpdateLandImpedance(self.config)
+        uli = UpdateLandImpedance(self.config, self.working_dir)
         uli.update_impedance()
 
 

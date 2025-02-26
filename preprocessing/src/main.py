@@ -136,7 +136,7 @@ def process_wdpa(
 @app.command("process-osm")
 def process_osm(
     config_dir: Annotated[str, typer.Option(..., help="Directory with the configuration file")] = "./config",
-    skip_fetch: Annotated[bool, typer.Option("--skip-fetch", "-s", help="Skip fetching OSM data")] = False,
+    skip_fetch: Annotated[bool, typer.Option("--skip-fetch", "-s", help="Skip fetching OSM data. Overwrites existing data if FALSE")] = False,
     delete_intermediate_files: Annotated[bool, typer.Option("--del-temp", "-dt", help="Delete intermediate GeoJSON & GPKG files")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
     record_time: Annotated[bool, typer.Option("--record-time", "-t", help="Record execution time")] = False
@@ -147,7 +147,7 @@ def process_osm(
 
     Args:
         config_dir (str): Directory containing the configuration file.
-        skip_fetch (bool): Skip fetching OSM data.
+        skip_fetch (bool): Skip fetching OSM data. Overwrites existing data if FALSE.
         delete_intermediate_files (bool): Delete intermediate GeoJSON & GPKG files.
         verbose (bool): Verbose mode.
         record_time (bool): Record the execution time.

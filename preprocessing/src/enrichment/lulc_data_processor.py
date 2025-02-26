@@ -21,7 +21,7 @@ class LULCDataPreprocessor():
         """
         self.config = config
         impedance_file = self.config.get('impedance', None)
-        impedance_dir = self.config.get('impedance_dir', None)
+        impedance_dir = os.path.join(working_dir, self.config["case_study_dir"], self.config["sub_case_study"] + self.config['impedance_dir'])
 
         if impedance_file is not None and impedance_dir is not None:
             # define path
