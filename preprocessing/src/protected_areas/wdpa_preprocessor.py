@@ -38,7 +38,7 @@ class WDPAPreprocessor():
         self.years = read_years_from_config(self.config)
 
         # each case study should have the same extent for LULC rasters, so we only need one raster to fetch the country codes
-        self.lulc = get_lulc_template(self.lulc_dir, self.config, self.years[0])
+        self.lulc = get_lulc_template(self.config, self.years[0])
         if not os.path.exists(self.lulc):
             raise FileNotFoundError(f"LULC raster for year {self.years[0]} not found at {self.lulc}")
 

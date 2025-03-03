@@ -9,14 +9,14 @@ import warnings
 from utils import get_lulc_template
 import timing
 
-class OSMPreprocessor():
+class OverpassWrapper():
     """
-    OSM (OpenStreetMap) Pre-Processor class to fetch OSM data for a given set of years and a bounding box.
+    This OSM (OpenStreetMap) Pre-Processor class fetches OSM data for a given set of years and a bounding box.
     Currently only fetches for one year of OSM data.
     """
-    def __init__(self, config:dict, lulc_dir:str, output_dir:str, verbose:bool, years:list[int]) -> None:
+    def __init__(self, config:dict, output_dir:str, verbose:bool, years:list[int]) -> None:
         """
-        Initialize the OSM Pre-Processor class with the configuration file and output directory.
+        Initialize the OverpassWrapper (OSM Pre-Processor) class with the configuration file and output directory.
 
         Args:
             lulc_dir (str): the directory containing the LULC files
@@ -30,9 +30,9 @@ class OSMPreprocessor():
         self.verbose = verbose
 
         # create a dictionary of LULC files and corresponding years
-        lulc_series = {get_lulc_template(lulc_dir,self.config, year):year for year in self.years}
+        lulc_series = {get_lulc_template(self.config, year):year for year in self.years}
         
-        # We can use the first raster to get the bounding box, as all rasters should have the same extent
+        # We can use the first raster to get the bounding box, as all rasters for each case study should have the same extent
         lulc = list(lulc_series.keys())[0]
 
         if self.verbose:
@@ -89,7 +89,7 @@ class OSMPreprocessor():
                     print(json.dumps(element, indent=2))
                 
                 # Save the JSON data to a file
-                output_file = os.path.join(self.output_dir, f"{query_name}_{year}.json")
+                output_file = os.path.join(self.output_dir, f"{query_name}_overpass_pre_{year}.json")
                 with open(output_file, 'w', encoding='utf-8') as f:
                     json.dump(data, f, ensure_ascii=False, indent=4)
                 print(f"Data has been saved to {output_file}")
@@ -216,8 +216,8 @@ class OSMPreprocessor():
             year (int): the year of the data
         """
         for query_name, query in queries.items():
-            input_file = os.path.join(self.output_dir, f"{query_name}_{year}.json")
-            output_file = os.path.join(self.output_dir, f"{query_name}_{year}.geojson")
+            input_file = os.path.join(self.output_dir, f"{query_name}_overpass_pre_{year}.json")
+            output_file = os.path.join(self.output_dir, f"{query_name}_overpass_pre_{year}.geojson")
             result = subprocess.run(['osmtogeojson', input_file], capture_output=True, text=True)
             if result.returncode == 0:
                 print(f"Conversion to GeoJSON for {query_name} in the {year} year was successful.")
@@ -237,7 +237,7 @@ class OSMPreprocessor():
                     
             
 
-    def fix_invalid_geometries(self, queries:dict[str,str], year:int ,overwrite_original:bool):
+    def filter_geometries(self, queries:dict[str,str], year:int , overwrite_original:bool):
         """
         A function to fix invalid geometries in the GeoJSON files
 
@@ -247,13 +247,13 @@ class OSMPreprocessor():
             overwrite_original (bool): overwrite the original GeoJSON files (True) or create new ones (False) *_filtered.geojson
 
         Returns:
-            list: a list of fixed GeoJSON files
+            list: a list of filtered GeoJSON files
         """
         geojson_files=[]
 
         # iterate over the queries and define outputs
         for query_name, query in queries.items():
-            geojson_file = os.path.join(self.output_dir, f"{query_name}_{year}.geojson")
+            geojson_file = os.path.join(self.output_dir, f"{query_name}_overpass_pre_{year}.geojson")
 
             # check if the non-zero GeoJSON files exist
             if os.path.exists(geojson_file) and os.path.getsize(geojson_file) > 0:
@@ -308,7 +308,7 @@ class OSMPreprocessor():
                 
                 # create new file 
                 if overwrite_original == False:
-                    geojson_file = os.path.join(self.output_dir, f"{query_name}_{year}_filtered.geojson")
+                    geojson_file = os.path.join(self.output_dir, f"{query_name}_overpass_pre_{year}_filtered.geojson")
                 
                 # overwrite the original GeoJSON file with the filtered one
                 with open(geojson_file, 'w', encoding='utf-8') as f:

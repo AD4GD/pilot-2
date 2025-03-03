@@ -80,7 +80,7 @@ def process_wdpa(
         case_study = case_study_dir.split("/")[-1]
 
         # # STEP 1.0: Get the unique country codes from the LULC raster data
-        country_codes = {'FRA','ESP'} #wp.get_lulc_country_codes() # returns {"GBR"} 
+        country_codes = wp.get_lulc_country_codes() # returns {"GBR"} 
 
         # print to user to confirm country PAs to fetch
         print(f"Country protected areas to fetch: {country_codes}")
@@ -136,6 +136,7 @@ def process_wdpa(
 @app.command("process-osm")
 def process_osm(
     config_dir: Annotated[str, typer.Option(..., help="Directory with the configuration file")] = "./config",
+    api_type: Annotated[str, typer.Option("--api", "-a", help="API to use for fetching OSM data. Choose from 'overpass' or 'ohsome)")] = "ohsome",
     skip_fetch: Annotated[bool, typer.Option("--skip-fetch", "-s", help="Skip fetching OSM data. Overwrites existing data if FALSE")] = False,
     delete_intermediate_files: Annotated[bool, typer.Option("--del-temp", "-dt", help="Delete intermediate GeoJSON & GPKG files")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
@@ -143,10 +144,11 @@ def process_osm(
     ):
     """
     Check if config exists. Fetches and translates Open Street Map data.
-    Example usage: python main.py process-osm --config-dir ./config --verbose --skip-fetch --del-temp --record-time
+    Example usage: python main.py process-osm --config-dir ./config --api ohsome  --verbose --skip-fetch --del-temp --record-time
 
     Args:
         config_dir (str): Directory containing the configuration file.
+        api_type (str): API to use for fetching OSM data. Choose from 'overpass' or 'ohsome
         skip_fetch (bool): Skip fetching OSM data. Overwrites existing data if FALSE.
         delete_intermediate_files (bool): Delete intermediate GeoJSON & GPKG files.
         verbose (bool): Verbose mode.
@@ -162,22 +164,22 @@ def process_osm(
     check_file_exists(config_path)
     try:
         working_dir = os.getcwd()
-        osm = OSMWrapper(working_dir, config_path, verbose)
+        osm = OSMWrapper(working_dir, config_path, api_type, verbose)
 
         # STEP 1: Fetch OSM data
         if not skip_fetch:
             if len(osm.years) > 1:
                 #prompt user to confirm which years to fetch
-                year = typer.prompt("Type 'all' or enter the year to fetch OSM data from the following years: ", osm.years)
+                year = typer.prompt("Type 'all' to use all years, or enter the year to fetch OSM data from the following years: ", osm.years,type=str)
                 if year != "all":
                     # repalce the years list with the selected year
                     osm.years = [year]
 
-        # fetch OSM data for the selected years
+        # fetch OSM data for the selected years using the selected API
         osm.osm_to_geojson(osm.years, skip_fetch)
 
         # STEP 2: Convert OSM data to merged GeoPackage (creates intermediate GeoJSON files for each year)
-        osm.osm_to_merged_gpkg(osm.years)
+        osm.osm_to_merged_gpkg(osm.years,osm.api_type)
        
         # STEP 3: Delete intermediate files
         if delete_intermediate_files:
@@ -221,7 +223,7 @@ def enrich_lulc(
 
         # prompt user to use all years or a specific year
         if len(lew.years) > 1:
-            year = typer.prompt("Type 'all' or enter the year to use for the LULC enrichment from the following years: ", lew.years)
+            year = typer.prompt("Type 'all' to use all years, or enter the year to use for the LULC enrichment from the following years: ", lew.years)
             if year != "all":
                 # replace the years list with the selected year
                 lew.years = [year]
@@ -285,7 +287,7 @@ def recalc_impedance(
 
     # prompt user to use all years or a specific year
     if len(iw.years) > 1:
-        year = typer.prompt("Type 'all' or enter the year to use for the LULC enrichment from the following years: ", iw.years)
+        year = typer.prompt("Type 'all' to use all years, or enter the year to use for the LULC enrichment from the following years: ", iw.years)
         if year != "all":
             # replace the years list with the selected year
             iw.years = [year]

@@ -45,7 +45,7 @@ class LULCEnrichmentWrapper():
         self.years = read_years_from_config(self.config)
 
         # create a dict of LULC files for each year
-        self.lulc_filepaths = {year:get_lulc_template(self.lulc_dir,self.config, year) for year in self.years}
+        self.lulc_filepaths = {year:get_lulc_template(self.config, year) for year in self.years}
 
     def prepare_lulc_osm_data(self, years:list[int]):
         """
