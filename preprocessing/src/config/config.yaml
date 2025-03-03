@@ -23,6 +23,8 @@ osm_roads:
     highway: [way,"~",motorway|trunk|primary|secondary|tertiary]
 osm_railways: 
     railway: [way,"~",rail|light_rail|narrow_gauge|tram|preserved]
+osm_vineyards: 
+    landuse: [way,"=",vineyard]
 osm_waterways: 
     waterway: [way,"~",river|canal|flowline|tidal_channel]
     water: [way,"~",river|canal]

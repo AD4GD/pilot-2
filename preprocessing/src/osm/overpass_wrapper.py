@@ -147,6 +147,7 @@ class OverpassWrapper():
         query_dict =  {
         "roads": f"""/* also includes 'motorway_link',  'trunk_link' etc because they also restrict connectivity */""", 
         "railways":f"""/* to include historical railways*/""", 
+        "vineyards":f"""/* to include vineyards and orchards*/""",
         "waterways":f"""
             /* ^ and $ symbols to exclude 'riverbank' and 'derelict_canal'*/ 
             /*second line has been added in case if some older features are missing 'way' tag*/
