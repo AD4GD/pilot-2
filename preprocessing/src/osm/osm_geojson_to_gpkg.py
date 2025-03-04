@@ -58,7 +58,7 @@ class OSMGeojsonToGpkg():
                     if self.api_type == 'ohsome':
                         # since ohsome has merged geojson files, we need to filter by year
                         geopackage_file.replace('.gpkg', f'_{self.year}.gpkg') 
-                        sql_query = f"SELECT * FROM {filename.split('_')[0]} WHERE \"@snapshotTimestamp\" <= '{self.year}-12-31T00:00:00Z'"
+                        sql_query = f"SELECT * FROM {filename.split('_')[0]} WHERE \"@snapshotTimestamp\" = '{self.year}-12-31T00:00:00Z'"
                         command.extend(['-sql', sql_query])
                     
                     # run the ogr2ogr command to convert the GeoJSON file to a GeoPackage file using subprocess
