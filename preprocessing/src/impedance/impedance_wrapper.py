@@ -56,9 +56,10 @@ class ImpedanceWrapper():
 
         # to be passed into other classes
         self.current_dir = os.path.normpath(os.getcwd())
-        self.output_dir = self.config.get('output_dir') # get the output directory
-        self.stressor_dir = self.config.get('stressors_dir') # get the directory for stressors
-        self.impedance_dir = self.config.get('impedance_dir') # get the directory for impedance rasters
+        self.case_study_dir = os.path.join(self.current_dir, self.config.get('case_study_dir')) # get the case study directory
+        self.output_dir = os.path.join(self.case_study_dir, "output") # get the output directory
+        self.stressor_dir = os.path.join(self.output_dir, "stressors") # get the directory for stressors
+        self.impedance_dir = os.path.join(self.case_study_dir, self.config["sub_case_study"] + self.config['impedance_dir']) # get the directory for impedance rasters
         # make a dir for impedance results
         self.impedance_res_dir = os.path.join(self.stressor_dir, 'impedance_results')
         if not os.path.exists(self.impedance_res_dir):

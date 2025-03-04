@@ -194,8 +194,7 @@ class RasterTransform:
         Tuple of four values: Transformed coordinates in WGS84 (x_min_after, y_min_after, x_max_after, y_max_after)
         """
 
-        self.transform_and_print(print_details)  # transform coordinates and print transformed values
-        return self.transform_and_print(print_details)
+        return self.transform_and_print(print_details) # transform coordinates and print transformed values
     
 # Example usage
 # raster_file = os.path.join(input_dir,'lulc.tif')

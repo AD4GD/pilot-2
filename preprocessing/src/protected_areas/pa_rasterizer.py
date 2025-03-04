@@ -5,6 +5,7 @@ import subprocess
 import numpy as np
 from raster_metadata import RasterMetadata
 from osgeo import gdal
+from rich import print as rprint
 
 class PARasterizer:
     """
@@ -68,13 +69,13 @@ class PARasterizer:
         print("Considered unique timestamps of LULC data are:","".join(str(self.year_stamps)))
         # TODO - to make it more flexible - to extract 4 consecutive numbers instead
             
-    def reproject_pa_data(self, target_crs:str, filter_by_year:bool=True) -> None:
+    def reproject_pa_data(self, target_crs:str, filter_by_year:bool) -> None:
         """
         Reprojects the protected areas to the same CRS as the LULC raster dataset, and filters them based on the year of establishment into separate GeoPackage files.
 
         Args:
             target_crs (str): The target CRS to reproject the protected areas.
-            filter_by_year (bool): Filter protected areas by the year of establishment (default is True). # TODO - should be moved to the main.py
+            filter_by_year (bool): Filter protected areas by less than or equal to year of establishment.
 
         Returns:
             None: prints the path/paths to the saved GeoPackage file.
@@ -166,10 +167,8 @@ class PARasterizer:
             subprocess.run(gdal_cmd, check=True)
             print("Rasterizing of protected areas has been successfully completed for", vector_filepath)
         except subprocess.CalledProcessError as e:
-            print(f"Error rasterizing protected areas: {e}")
+            rprint(f"[bold red] Error rasterizing protected areas: {e} [/bold red]")
         
-        
-
     def rasterize_pa_geopackage(self, lulc_metadata:RasterMetadata, pa_to_yearly_rasters:bool=True , keep_intermediate_gpkg:bool=False) -> None:
         """
         Rasterizes the protected areas to the same extent and resolution as the LULC raster dataset.
@@ -200,13 +199,20 @@ class PARasterizer:
                 pas_yearstamp_raster_path = os.path.join(self.output_dir, output_path)
                 self.rasterize_pa(lulc_metadata, pas_yearstamp_path, pas_yearstamp_raster_path)
 
+                # remove intermediate GeoPackage files if keep_intermediate_gpkg is False
+                if not keep_intermediate_gpkg:
+                    os.remove(pas_yearstamp_path)
+                    rprint(f"[yellow] Intermediate GeoPackage {reprojected_pa} has been removed. [/yellow]")
+
         # if rasterize_all_years is False, rasterize the one reprojected pa file.
         else:
             # rasterize the one reprojected pa file.
             reprojected_pa = os.path.join(self.output_dir, "pa.gpkg") # (input file)
-            reprojected_pa_raster = os.path.join(self.output_dir, "pa.tif") # (output file)
+            reprojected_pa_raster = os.path.join(self.output_dir, "pas.tif") # (output file)
             self.rasterize_pa(lulc_metadata, reprojected_pa, reprojected_pa_raster)
+
+            # remove intermediate GeoPackage files if keep_intermediate_gpkg is False
+            if not keep_intermediate_gpkg:
+                os.remove(reprojected_pa)
+                rprint(f"[yellow] Intermediate GeoPackage {reprojected_pa} has been removed. [/yellow]")
             
-        if not keep_intermediate_gpkg:
-            os.remove(pas_yearstamp_path)
-            print(f"Intermediate GeoPackage {reprojected_pa} has been removed.")

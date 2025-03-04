@@ -1,13 +1,14 @@
 import os 
-from osm.osm_preprocessor import OSMPreprocessor
+from osm.overpass_wrapper import OverpassWrapper
 from osm.osm_geojson_to_gpkg import OSMGeojsonToGpkg
+from osm.ohsome_wrapper import OhsomeWrapper
 from utils import load_yaml, read_years_from_config
 import shutil
 import timing
 
 class OSMWrapper():
 
-    def __init__(self, working_dir:str,config_path:str, verbose:bool) -> None:
+    def __init__(self, working_dir:str, config_path:str, api_type:str, verbose:bool) -> None:
         """
         Initialize the WDPAWrapper class
 
@@ -19,60 +20,103 @@ class OSMWrapper():
 
         self.working_dir = working_dir
         self.config = load_yaml(config_path)
+        self.api_type = api_type
+
+        self.years = read_years_from_config(self.config)
+        self.case_study_dir = self.config['case_study_dir']
+        self.case_study = self.case_study_dir.split('/')[-1]
         self.verbose = verbose
-        self.osm_output_data_dir = os.path.abspath(os.path.join(working_dir, "data","output","osm_data"))
+        self.osm_output_data_dir = os.path.abspath(os.path.join(working_dir, "data","shared","input","osm_data",self.case_study))
         os.makedirs(self.osm_output_data_dir, exist_ok=True)
-        self.input_dir = os.path.abspath(os.path.join(working_dir, "data","input"))
-        self.lulc_dir = os.path.abspath(os.path.join(self.input_dir, 'lulc'))
+
+        self.input_dir = os.path.abspath(os.path.join(working_dir, self.case_study_dir,"input"))
+        self.lulc_dir = os.path.abspath(self.config['lulc_dir'])
+
+        # vector_dir is where the final merged gpkg files will be stored
         self.vector_dir = os.path.abspath(os.path.join(self.input_dir, 'vector'))
         os.makedirs(self.vector_dir, exist_ok=True)
         self.gpkg_dir = os.path.join(self.osm_output_data_dir, 'gpkg_temp')
-        self.years = read_years_from_config(self.config)
+        os.makedirs(self.gpkg_dir, exist_ok=True)
         
 
-    def osm_to_geojson(self, years:list, skip_fetch:bool):
+    def osm_overpass_to_geojson(self, years:list, skip_fetch:bool):
         """
         Handles fetching OSM data for all the years in the configuration file and convert them to geojson files.
 
         Args:
             years (list): a list of years to process (From the OSMPreprocessor class)
-            skip_fetch (bool): whether to skip fetching OSM data or not
+            skip_fetch (bool): whether to skip fetching OSM data or not. If FALSE, it will OVERWRITE any existing JSON files.
         """
-        osmp = OSMPreprocessor(self.config, self.lulc_dir, self.osm_output_data_dir, self.verbose, years)
+        ow = OverpassWrapper(self.config, self.osm_output_data_dir, self.verbose, years)
         for year in years:
             # build the queries for the year
-            queries = osmp.overpass_query_builder(year, bbox= osmp.bbox)
+            queries = ow.overpass_query_builder(year, bbox=ow.bbox)
             
             # fetch the OSM data for the year
             if skip_fetch == False:
-                intermediate_jsons = osmp.fetch_osm_data(queries=queries, year=year)
+                intermediate_jsons = ow.fetch_osm_data(queries=queries, year=year)
                 if self.verbose:
                     [print(f"Created JSON file: {intermediate_json}, ") for intermediate_json in intermediate_jsons]
             else:
                 #read all json files with the year in the name
-                intermediate_jsons = [os.path.join(self.osm_output_data_dir, file) for file in os.listdir(self.osm_output_data_dir) if f'{year}.json' in file]
+                intermediate_jsons = [os.path.join(self.osm_output_data_dir, file) for file in os.listdir(self.osm_output_data_dir) if f'overpass_pre_{year}.json' in file]
 
             # convert the intermediate JSON files to GeoJSON files
-            osmp.convert_to_geojson(queries=queries, year=year)
+            ow.convert_to_geojson(queries=queries, year=year)
             # fix invalid geometries in the GeoJSON files
-            osmp.fix_invalid_geometries(queries=queries,year=year,overwrite_original=False)
+            if self.verbose:
+                print(f"Verbose outputs enabled, so filtered geometries will be created as new *_filtered.geojson files")
+            ow.filter_geometries(queries=queries,year=year, overwrite_original=self.verbose)
 
-    def osm_to_merged_gpkg(self, years:list):
+    def osm_ohsome_to_geojson(self, years:list, skip_fetch:bool):
+        """
+        Handles fetching OSM data for all the years in the configuration file and convert them to geojson files.
+
+        Args:
+            years (list): a list of years to process (From the OSMPreprocessor class)
+            skip_fetch (bool): whether to skip fetching OSM data or not. If FALSE, it will OVERWRITE any existing JSON files.
+        """
+        ow = OhsomeWrapper(self.config, self.osm_output_data_dir, years, self.verbose)
+        all_years = True if len(years) > 1 else False # if more than one year is provided, then fetch all years combined into one JSON file
+        if self.verbose:
+            print(f"Verbose outputs enabled, so filtered features will be created as new *_filtered.geojson files")
+        if skip_fetch == True:
+            year = years[-1]
+            intermediate_jsons = [os.path.join(self.osm_output_data_dir, file) for file in os.listdir(self.osm_output_data_dir) if f'ohsome_pre_{year}.json' in file]
+            ow.convert_to_geojson(intermediate_jsons, year)
+        else:
+            ow.fetch_osm_data(years, ow.ohsome_query_builder(all_years), timeout=600)
+
+    def osm_to_geojson(self, years:list, skip_fetch:bool):
+        if self.api_type == 'overpass':
+            self.osm_overpass_to_geojson(years, skip_fetch)
+        elif self.api_type == 'ohsome':
+            self.osm_ohsome_to_geojson(years, skip_fetch)
+        else:
+            raise ValueError("Invalid API type. Please use either 'overpass' or 'ohsome'.")
+     
+    def osm_to_merged_gpkg(self, years:list, api_type:str):
         """
         Converts the OSM GeoJSON files to GeoPackage files and merges them into a single GeoPackage file.
 
         Args:
             years (list): a list of years to process (From the OSMPreprocessor class)
+            api_type (str): the API to use for fetching OSM data (either 'overpass' or 'ohsome')
 
         Returns:
             None: Writes the GeoPackage files to the output directory
         
         """
         for year in years:
-            ogtg = OSMGeojsonToGpkg(self.osm_output_data_dir,self.gpkg_dir,target_epsg=4326, year=year, file_ending='geojson')
+            ogtg = OSMGeojsonToGpkg(self.osm_output_data_dir,self.gpkg_dir,target_epsg=4326, year=year, api_type=api_type)
+            # if verbose mode is used then use the filtered.geojson files
+            file_ending = 'geojson' if self.verbose else 'filtered.geojson'
+
+            # replace .geojson with .gpkg for each file
+            ogtg.gpkg_files = [file for file in ogtg.convert_geojson_to_gpkg(file_ending)]
             output_file = os.path.join(self.gpkg_dir, f'osm_merged_{year}.gpkg') # year added from OSM_PreProcessor class 
             fixed_gpkg_path = os.path.join(self.gpkg_dir, f'osm_merged_{year}_fixed.gpkg')
-            ogtg.merge_gpkg_files(output_file, year)
+            ogtg.merge_gpkg_files(output_file)
             gpkg_path = ogtg.fix_geometries_in_gpkg(output_file, fixed_gpkg_path)
             #Move file to vector_dir for next notebook
             shutil.move(gpkg_path, os.path.join(self.vector_dir, f'osm_merged_{year}.gpkg'))
@@ -88,7 +132,7 @@ class OSMWrapper():
         Returns:
             None: Deletes all intermediate GeoJSON files from osm data directory
         """
-        # delete all GeoJSON files
+        # delete all Overpass GeoJSON files
         if delete_geojsons:
             for file in os.listdir(self.osm_output_data_dir):
                 if file.endswith('.geojson'):
@@ -103,8 +147,8 @@ class OSMWrapper():
 
 
 if __name__ == "__main__":
-    osm = OSMWrapper(os.getcwd(), "./config/config.yaml", verbose=True)
+    osm = OSMWrapper(os.getcwd(), "./config/config.yaml",api_type="ohsome", verbose=True)
     osm.osm_to_geojson(osm.years, skip_fetch=True)
-    osm.osm_to_merged_gpkg(osm.years)
-    # osm.delete_temp_files(True, True)
+    osm.osm_to_merged_gpkg(osm.years, osm.api_type)
+    osm.delete_temp_files(True, True)
     print("OSM data processing complete.")

@@ -12,13 +12,18 @@ import time
 
 # TODO - to add the function that can create impedance dataset based on csv table if user doesn't have it yet. So, the function can be used as option in 1,3 and 4th commands independently.
 # TODO - to put recurring time captures to the separate function? (or use local module timing)
-
 err_console = Console(stderr=True, style="bold red")
 
 app = typer.Typer(
     name="Data4Land CLI",
     help="CLI tool for preprocessing and enriching land-use/land-cover data.",
 )
+
+#TODO makea config validator script
+# e.g 
+# if self.input_folder is None:
+#     raise ValueError("LULC directory is null or not found in the configuration file.")
+
 
 def check_file_exists(filePath:str):
     """
@@ -38,20 +43,24 @@ def check_file_exists(filePath:str):
 @app.command("process-wdpa")
 def process_wdpa(
     config_dir: Annotated[str, typer.Option(..., help="Directory with the configuration file")] = "./config",
+    use_yearly_pa_raster: Annotated[bool, typer.Option("--enrich-single-year", "-e", help="use a specific PA year to update LULC or use all years")] = False,
     auto_confirm: Annotated[bool, typer.Option("--force", "-f", help="Auto confirm all prompts")] = False,
-    skip_fetch: Annotated[bool, typer.Option("--skip-fetch", "-s", help="Skip fetching protected areas")] = False,
+    skip_fetch: Annotated[bool, typer.Option("--skip-fetch", "-s", help="Skip fetching protected areas for existing country PA geojson")] = False,
+    delete_intermediate_files: Annotated[bool, typer.Option("--del-temp", "-dt", help="Delete intermediate GeoJSON & GPKG files")] = True,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
-    record_time: Annotated[bool, typer.Option("--record_time", "-t", help="Record execution time")] = False,
-    use_yearly_pa_rasters: Annotated[bool, typer.Option("--use-yearly-pa", "-u", help="use a specific PA year to update LULC or use all years")] = False
+    record_time: Annotated[bool, typer.Option("--record-time", "-t", help="Record execution time")] = False,
+
 ):
     """
     Preprocess data on protected areas for each year of LULC data.
-    Example usage: python main.py process-wdpa --config-dir ./config --force --skip-fetch --verbose --record_time
+    Example usage: python main.py process-wdpa --config-dir ./config --force --skip-fetch --del-temp --verbose --record-time
     
     Args:
         config_dir (str): Directory containing the configuration file.
+        use_yearly_pa_raster (bool): Use less than or equal to PA year of establishment when TRUE, else use all years.
         auto_confirm (bool): Auto confirm all prompts.
-        skip_fetch (bool): Skip fetching protected areas data from the API.
+        skip_fetch (bool): Skip fetching protected areas data from the API if the data already exists in the shared input directory.
+        delete_intermediate_files (bool): Delete intermediate GPKG files
         verbose (bool): Verbose mode.
         record_time (bool): Record the execution time
     """
@@ -65,6 +74,10 @@ def process_wdpa(
     try:
         working_dir = os.getcwd()
         wp = WDPAWrapper(working_dir, config_path, verbose=verbose)
+        
+        # get the case study directory
+        case_study_dir = str(wp.config.get("case_study_dir"))
+        case_study = case_study_dir.split("/")[-1]
 
         # # STEP 1.0: Get the unique country codes from the LULC raster data
         country_codes = wp.get_lulc_country_codes() # returns {"GBR"} 
@@ -81,15 +94,27 @@ def process_wdpa(
         
         # # STEP 2.0: Fetch and process the protected areas for the selected countries
         print("Fetching protected areas for the selected countries...")
-        merged_gpkg = wp.protected_area_to_merged_geopackage(country_codes, "merged_pa.gpkg", skip_fetch)
+        # strip case study name from data/{case_study}
+        merged_gpkg = case_study + "_merged_pa.gpkg"
+        merged_gpkg = wp.protected_area_to_merged_geopackage(country_codes, merged_gpkg, skip_fetch)
 
-        # STEP 3.0: Rasterize the merged GeoPackage file
+        # # STEP 3.0: Rasterize the merged GeoPackage file
         print("Rasterizing the merged GeoPackage file...")
-        wp.rasterize_protected_areas(merged_gpkg, os.path.join(working_dir,wp.config.get("lulc_dir")), pa_to_yearly_rasters=use_yearly_pa_rasters)
+        lulc_dir = wp.config.get("lulc_dir")
+        wp.rasterize_protected_areas(merged_gpkg, lulc_dir, use_yearly_pa_raster)
+
+        if delete_intermediate_files:
+            os.remove(merged_gpkg)
+            typer.secho(f"{merged_gpkg} file has been deleted", fg=typer.colors.YELLOW)
         
         # # STEP 4.0: Raster calculation
         print("Summing LULC and PA rasters...")
-        wp.sum_lulc_pa_rasters()
+        wp.sum_lulc_pa_rasters(
+            input_path=os.path.join(working_dir, case_study_dir, "input"),
+            output_path=os.path.join(working_dir, case_study_dir, "output"),
+            lulc_dir=wp.config.get("lulc_dir"),
+            use_yearly_pa_rasters= use_yearly_pa_raster
+        )
 
         # # STEP 5.0: Reclassify input raster with impedance values
         print("Reclassifying the raster with impedance values...")
@@ -97,7 +122,7 @@ def process_wdpa(
 
         # # STEP 6: Compute affinity
         print("Computing affinity")
-        wp.compute_affinity(os.path.join(working_dir, "data", "output", "affinity"))
+        wp.compute_affinity(os.path.join(working_dir, case_study_dir, "output", "affinity"))
 
     except Exception as e:
         err_console.print(f"Error: {e}")
@@ -111,18 +136,20 @@ def process_wdpa(
 @app.command("process-osm")
 def process_osm(
     config_dir: Annotated[str, typer.Option(..., help="Directory with the configuration file")] = "./config",
-    skip_fetch: Annotated[bool, typer.Option("--skip-fetch", "-s", help="Skip fetching OSM data")] = False,
+    api_type: Annotated[str, typer.Option("--api", "-a", help="API to use for fetching OSM data. Choose from 'overpass' or 'ohsome)")] = "ohsome",
+    skip_fetch: Annotated[bool, typer.Option("--skip-fetch", "-s", help="Skip fetching OSM data. Overwrites existing data if FALSE")] = False,
     delete_intermediate_files: Annotated[bool, typer.Option("--del-temp", "-dt", help="Delete intermediate GeoJSON & GPKG files")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
-    record_time: Annotated[bool, typer.Option("--record_time", "-t", help="Record execution time")] = True
+    record_time: Annotated[bool, typer.Option("--record-time", "-t", help="Record execution time")] = False
     ):
     """
     Check if config exists. Fetches and translates Open Street Map data.
-    Example usage: python main.py process-osm --config-dir ./config --verbose --skip-fetch --del-temp --record_time
+    Example usage: python main.py process-osm --config-dir ./config --api ohsome  --verbose --skip-fetch --del-temp --record-time
 
     Args:
         config_dir (str): Directory containing the configuration file.
-        skip_fetch (bool): Skip fetching OSM data.
+        api_type (str): API to use for fetching OSM data. Choose from 'overpass' or 'ohsome
+        skip_fetch (bool): Skip fetching OSM data. Overwrites existing data if FALSE.
         delete_intermediate_files (bool): Delete intermediate GeoJSON & GPKG files.
         verbose (bool): Verbose mode.
         record_time (bool): Record the execution time.
@@ -137,22 +164,22 @@ def process_osm(
     check_file_exists(config_path)
     try:
         working_dir = os.getcwd()
-        osm = OSMWrapper(working_dir, config_path, verbose)
+        osm = OSMWrapper(working_dir, config_path, api_type, verbose)
 
         # STEP 1: Fetch OSM data
         if not skip_fetch:
             if len(osm.years) > 1:
                 #prompt user to confirm which years to fetch
-                year = typer.prompt("Type 'all' or enter the year to fetch OSM data from the following years: ", osm.years)
+                year = typer.prompt("Type 'all' to use all years, or enter the year to fetch OSM data from the following years: ", osm.years,type=str)
                 if year != "all":
                     # repalce the years list with the selected year
                     osm.years = [year]
 
-        # fetch OSM data for the selected years
+        # fetch OSM data for the selected years using the selected API
         osm.osm_to_geojson(osm.years, skip_fetch)
 
         # STEP 2: Convert OSM data to merged GeoPackage (creates intermediate GeoJSON files for each year)
-        osm.osm_to_merged_gpkg(osm.years)
+        osm.osm_to_merged_gpkg(osm.years,osm.api_type)
        
         # STEP 3: Delete intermediate files
         if delete_intermediate_files:
@@ -173,7 +200,7 @@ def enrich_lulc(
     config_dir: Annotated[str, typer.Option(..., help="Directory with the configuration file")] = "./config",
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
     save_osm_stressors: Annotated[bool, typer.Option("--save-osm-stressors", "-s", help="Save OSM stressors to file")] = False,
-    record_time: Annotated[bool, typer.Option("--record_time", "-t", help="Record execution time")] = True
+    record_time: Annotated[bool, typer.Option("--record-time", "-t", help="Record execution time")] = True
     ):
     """
     Check if config exists. Processes and merges fetched data into output LULC dataset.
@@ -196,7 +223,7 @@ def enrich_lulc(
 
         # prompt user to use all years or a specific year
         if len(lew.years) > 1:
-            year = typer.prompt("Type 'all' or enter the year to use for the LULC enrichment from the following years: ", lew.years)
+            year = typer.prompt("Type 'all' to use all years, or enter the year to use for the LULC enrichment from the following years: ", lew.years)
             if year != "all":
                 # replace the years list with the selected year
                 lew.years = [year]
@@ -223,7 +250,7 @@ def recalc_impedance(
     decline_type: Annotated[str, typer.Option("--decline-type", "-dt", help="Type of decline to use for impedance calculation. Use either exp_decline OR prop_decline")] = "exp_decline",
     lambda_decay: Annotated[int, typer.Option("--lambda-decay", "-ld", help="Lambda decay value for impedance calculation")] = 500,
     k_value: Annotated[int, typer.Option("--k-value", "-k", help="K-value for impedance calculation")] = 500,
-    record_time: Annotated[bool, typer.Option("--record_time", "-t", help="Record execution time")] = True
+    record_time: Annotated[bool, typer.Option("--record-time", "-t", help="Record execution time")] = True
     ):
     """
     Check if config exists. Recalculates landscape impedance data for follow-up commputations.
@@ -260,7 +287,7 @@ def recalc_impedance(
 
     # prompt user to use all years or a specific year
     if len(iw.years) > 1:
-        year = typer.prompt("Type 'all' or enter the year to use for the LULC enrichment from the following years: ", iw.years)
+        year = typer.prompt("Type 'all' to use all years, or enter the year to use for the LULC enrichment from the following years: ", iw.years)
         if year != "all":
             # replace the years list with the selected year
             iw.years = [year]
