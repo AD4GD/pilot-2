@@ -45,11 +45,12 @@ class OSMGeojsonToGpkg():
         for filename in os.listdir(self.osm_data_dir):
             if filename.endswith(file_ending):
                 geojson_file = os.path.join(self.osm_data_dir, filename)
-                geopackage_file = os.path.join(self.gpkg_dir, filename.replace('.geojson', '.gpkg'))
+                # create the output GeoPackage file path
+                geopackage_file = os.path.join(self.gpkg_dir, filename.replace(file_ending, '.gpkg'))
 
                 # since ohsome has geojson files with all years, we need to create a new geopackage file for each year from the config
                 if self.api_type == 'ohsome':
-                    year_of_file = filename.split('_')[-1].split('.')[0]
+                    year_of_file = geopackage_file.split('_')[-1].split('.')[0]
                     geopackage_file = geopackage_file.replace(f'{year_of_file}.gpkg', f'{self.year}.gpkg') 
             
                 try:
@@ -58,7 +59,7 @@ class OSMGeojsonToGpkg():
                     if self.api_type == 'ohsome':
                         # since ohsome has merged geojson files, we need to filter by year
                         geopackage_file.replace('.gpkg', f'_{self.year}.gpkg') 
-                        sql_query = f"SELECT * FROM {filename.split('_')[0]} WHERE \"@snapshotTimestamp\" = '{self.year}-12-31T01:00:00Z'"
+                        sql_query = f"SELECT * FROM {filename.split('_')[0]} WHERE \"@snapshotTimestamp\" = '{self.year}-12-31'"
                         command.extend(['-sql', sql_query])
                     
                     # run the ogr2ogr command to convert the GeoJSON file to a GeoPackage file using subprocess
@@ -105,7 +106,7 @@ class OSMGeojsonToGpkg():
         print(f"Initialized merged GeoPackage with CRS EPSG:{self.target_epsg} from {layer_name}.")
 
         for gpkg_file in self.gpkg_files[1:]:  # skip the first file because it's already added
-            layer_name = gpkg_file.split(f"_{self.year}")[0]
+            layer_name = gpkg_file.split(f"_{self.api_type}")[0]
             gpkg_file = os.path.join(self.gpkg_dir, gpkg_file)
             # run appending separate geopackages to empty merged geopackage (update if layers were previously written)
             try:

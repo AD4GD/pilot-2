@@ -110,7 +110,7 @@ class OSMWrapper():
         for year in years:
             ogtg = OSMGeojsonToGpkg(self.osm_output_data_dir,self.gpkg_dir,target_epsg=4326, year=year, api_type=api_type)
             # if verbose mode is used then use the filtered.geojson files
-            file_ending = 'geojson' if self.verbose else 'filtered.geojson'
+            file_ending = '_filtered.geojson' if self.verbose else 'geojson'
 
             # replace .geojson with .gpkg for each file
             ogtg.gpkg_files = [file for file in ogtg.convert_geojson_to_gpkg(file_ending)]
