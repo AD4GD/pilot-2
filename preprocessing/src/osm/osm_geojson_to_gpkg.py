@@ -43,7 +43,7 @@ class OSMGeojsonToGpkg():
         # loop through all geojson files in directory
         gpkg_files = []
         for filename in os.listdir(self.osm_data_dir):
-            if filename.endswith(file_ending):
+            if filename.endswith(file_ending) and self.api_type in filename:
                 geojson_file = os.path.join(self.osm_data_dir, filename)
                 # create the output GeoPackage file path
                 geopackage_file = os.path.join(self.gpkg_dir, filename.replace(file_ending, '.gpkg'))
@@ -55,7 +55,7 @@ class OSMGeojsonToGpkg():
             
                 try:
                     command = ['ogr2ogr', '-f', 'GPKG', '-t_srs', f'EPSG:{self.target_epsg}', geopackage_file, geojson_file]
-                    # if ohsom is specified, extract data from the specified year and prior
+                    # if ohsome is specified, extract data from the specified year and prior
                     if self.api_type == 'ohsome':
                         # since ohsome has merged geojson files, we need to filter by year
                         geopackage_file.replace('.gpkg', f'_{self.year}.gpkg') 

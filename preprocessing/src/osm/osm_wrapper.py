@@ -66,7 +66,7 @@ class OSMWrapper():
             # fix invalid geometries in the GeoJSON files
             if self.verbose:
                 print(f"Verbose outputs enabled, so filtered geometries will be created as new *_filtered.geojson files")
-            ow.filter_geometries(queries=queries,year=year, overwrite_original=self.verbose)
+            ow.filter_geometries(queries=queries,year=year, overwrite_original= not(self.verbose))
 
     def osm_ohsome_to_geojson(self, years:list, skip_fetch:bool):
         """
@@ -148,7 +148,7 @@ class OSMWrapper():
 
 if __name__ == "__main__":
     osm = OSMWrapper(os.getcwd(), "./config/config.yaml",api_type="ohsome", verbose=True)
-    osm.osm_to_geojson(osm.years, skip_fetch=True)
-    osm.osm_to_merged_gpkg(osm.years, osm.api_type)
-    osm.delete_temp_files(True, True)
+    #osm.osm_to_geojson(osm.years, skip_fetch=True)
+    #osm.osm_to_merged_gpkg(osm.years, osm.api_type)
+    #osm.delete_temp_files(True, True)
     print("OSM data processing complete.")
