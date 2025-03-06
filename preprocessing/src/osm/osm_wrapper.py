@@ -148,7 +148,7 @@ class OSMWrapper():
 
 if __name__ == "__main__":
     osm = OSMWrapper(os.getcwd(), "./config/config.yaml",api_type="ohsome", verbose=True)
-    #osm.osm_to_geojson(osm.years, skip_fetch=True)
-    #osm.osm_to_merged_gpkg(osm.years, osm.api_type)
-    #osm.delete_temp_files(True, True)
+    osm.osm_to_geojson(osm.years, skip_fetch=True)
+    osm.osm_to_merged_gpkg(osm.years, osm.api_type)
+    osm.delete_temp_files(True, True)
     print("OSM data processing complete.")
