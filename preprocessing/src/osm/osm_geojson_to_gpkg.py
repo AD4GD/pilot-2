@@ -43,28 +43,30 @@ class OSMGeojsonToGpkg():
         # loop through all geojson files in directory
         gpkg_files = []
         for filename in os.listdir(self.osm_data_dir):
-            if filename.endswith(file_ending):
+            if filename.endswith(file_ending) and self.api_type in filename:
                 geojson_file = os.path.join(self.osm_data_dir, filename)
-                geopackage_file = os.path.join(self.gpkg_dir, filename.replace('.geojson', '.gpkg'))
+                # create the output GeoPackage file path
+                geopackage_file = os.path.join(self.gpkg_dir, filename.replace(file_ending, '.gpkg'))
 
                 # since ohsome has geojson files with all years, we need to create a new geopackage file for each year from the config
                 if self.api_type == 'ohsome':
-                    year_of_file = filename.split('_')[-1].split('.')[0]
+                    year_of_file = geopackage_file.split('_')[-1].split('.')[0]
                     geopackage_file = geopackage_file.replace(f'{year_of_file}.gpkg', f'{self.year}.gpkg') 
             
                 try:
                     command = ['ogr2ogr', '-f', 'GPKG', '-t_srs', f'EPSG:{self.target_epsg}', geopackage_file, geojson_file]
-                    # if ohsom is specified, extract data from the specified year and prior
+                    # if ohsome is specified, extract data from the specified year and prior
                     if self.api_type == 'ohsome':
                         # since ohsome has merged geojson files, we need to filter by year
                         geopackage_file.replace('.gpkg', f'_{self.year}.gpkg') 
-                        sql_query = f"SELECT * FROM {filename.split('_')[0]} WHERE \"@snapshotTimestamp\" = '{self.year}-12-31T01:00:00Z'"
+                        # we need to rename the geometry field when using ohsome data
+                        sql_query = f"SELECT \"_ogr_geometry_\" as geom, * FROM {filename.split('_')[0]} WHERE \"@snapshotTimestamp\" = '{self.year}-12-31'"
                         command.extend(['-sql', sql_query])
                     
-                    # run the ogr2ogr command to convert the GeoJSON file to a GeoPackage file using subprocess
+                    #run the ogr2ogr command to convert the GeoJSON file to a GeoPackage file using subprocess
                     result = subprocess.run(command, capture_output=True, text=True)
-                    
-                    print(f"Converted and modified to GeoPackage: {filename}")
+
+                    print(f"Converted and modified {filename} to GeoPackage: {geopackage_file}")
 
                     #check error code
                     if len(result.stderr) > 0:
@@ -105,7 +107,7 @@ class OSMGeojsonToGpkg():
         print(f"Initialized merged GeoPackage with CRS EPSG:{self.target_epsg} from {layer_name}.")
 
         for gpkg_file in self.gpkg_files[1:]:  # skip the first file because it's already added
-            layer_name = gpkg_file.split(f"_{self.year}")[0]
+            layer_name = gpkg_file.split(f"_{self.api_type}")[0]
             gpkg_file = os.path.join(self.gpkg_dir, gpkg_file)
             # run appending separate geopackages to empty merged geopackage (update if layers were previously written)
             try:
@@ -115,7 +117,6 @@ class OSMGeojsonToGpkg():
                                                 check=True, 
                                                 capture_output=True, 
                                                 text=True)
-                
                 print(f"Added layer {layer_name} from {gpkg_file} to {output_file}")
                 if len(result.stderr) > 0:
                     print(f"Warnings or errors:\n{result.stderr}")
@@ -148,7 +149,7 @@ class OSMGeojsonToGpkg():
         # open the output GeoPackage for editing
         data_source = ogr.Open(fixed_gpkg_path, update=1)
 
-        for i in range(data_source.GetLayerCount()):
+        for i in range(data_source.GetLayerCount()):            
             layer = data_source.GetLayerByIndex(i)
             layer_name = layer.GetName()
             feature_to_fix_count = 0

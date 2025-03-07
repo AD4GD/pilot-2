@@ -19,7 +19,7 @@ app = typer.Typer(
     help="CLI tool for preprocessing and enriching land-use/land-cover data.",
 )
 
-#TODO makea config validator script
+#TODO make a config validator script
 # e.g 
 # if self.input_folder is None:
 #     raise ValueError("LULC directory is null or not found in the configuration file.")
@@ -365,7 +365,7 @@ def init(firstname: str, surname: str, formal: bool = False):
     else:
         typer.echo(f"Hello {firstname} {surname}")
 
-    err_console.print("This is an error message")
+    # err_console.print("This is an error message")
 
 
 
