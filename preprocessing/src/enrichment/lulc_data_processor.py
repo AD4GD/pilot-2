@@ -20,18 +20,18 @@ class LULCDataPreprocessor():
             working_dir (str): current directory
         """
         self.config = config
-        impedance_file = self.config.get('impedance', None)
-        impedance_dir = os.path.join(working_dir, self.config["case_study_dir"], self.config["sub_case_study"] + self.config['impedance_dir'])
+        self.impedance_file = self.config.get('impedance', None)
+        impedance_dir = os.path.join(working_dir, self.config["case_study_dir"], self.config["sub_case_study"] + "_" + self.config['impedance_dir'])
 
-        if impedance_file is not None and impedance_dir is not None:
+        if self.impedance_file is not None and impedance_dir is not None:
             # define path
-            impedance_file = os.path.join(working_dir,impedance_dir,impedance_file)
-            print(f"Using auxiliary tabular data from {impedance_file}.")
+            self.impedance_file = os.path.join(working_dir,impedance_dir,self.impedance_file)
+            print(f"Using auxiliary tabular data from {self.impedance_file}.")
         else:
             warnings.warn("auxiliary tabular data was not provided.")
 
         # map LULC codes to OSM features 
-        self.lulc_codes = self.lulc_mapping(impedance_file)
+        self.lulc_codes = self.lulc_mapping(self.impedance_file)
         self.raster_metadata = RasterMetadata.from_raster(lulc_filepath)
 
     def lulc_mapping(self, impedance_file:str) -> dict:

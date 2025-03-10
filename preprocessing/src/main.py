@@ -228,10 +228,13 @@ def enrich_lulc(
                 # replace the years list with the selected year
                 lew.years = [year]
 
-        # prepare and merge LULC and OSM data
-        lew.prepare_lulc_osm_data(lew.years)
-        # merge LULC and OSM data
-        lew.merge_lulc_osm_data(lew.years, save_osm_stressors)
+        for year in lew.years:
+            # 1. prepare and merge LULC and OSM data
+            lew.initialise_data_processors(year)
+            # 1.2 buffer vector data
+            lew.buffer_vector_roads_and_railways()
+            # 2. rasterize vector data
+            lew.merge_lulc_osm_data(year, save_osm_stressors)
 
     except Exception as e:
         err_console.print(f"Error: {e}")

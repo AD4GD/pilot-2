@@ -140,7 +140,7 @@ class WDPAWrapper():
             None
         """
         os.makedirs(affinity_dir, exist_ok=True)
-        impedance_dir = os.path.join(self.working_dir, self.config["case_study_dir"], self.config["sub_case_study"] + self.config["impedance_dir"])
+        impedance_dir = os.path.join(self.working_dir, self.config["case_study_dir"], self.config["sub_case_study"] + "_" + self.config["impedance_dir"])
         
         lae = LandscapeAffinityEstimator(impedance_dir, affinity_dir)
         lae.compute_affinity(os.listdir(impedance_dir))
