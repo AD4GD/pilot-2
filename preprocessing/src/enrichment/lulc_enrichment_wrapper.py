@@ -47,50 +47,54 @@ class LULCEnrichmentWrapper():
         # create a dict of LULC files for each year
         self.lulc_filepaths = {year:get_lulc_template(self.config, year) for year in self.years}
 
-    def prepare_lulc_osm_data(self, years:list[int]):
+    def initialise_data_processors(self, year:int):
         """
-        Prepares the LULC and OSM data for rasterization and merging into a single raster dataset.
+        Prepares the LULC and OSM data processors which handle rasterization and merging into a single raster dataset.
 
         Args:
-            years (list): list of years to process
+            year (int): year of the data to process
         """
-        for year in years:
-            ## LULC PREPROCESSING 
-            self.lp = LULCDataPreprocessor(self.config, self.lulc_filepaths[year], self.working_dir)
-            
-            ## OSM PREPROCESSING
-            self.vp = VectorDataPreprocessor(self.config, self.working_dir, self.vector_dir, year, self.lp.raster_metadata.crs_info["epsg"], self.lp.raster_metadata.is_cartesian)
-            # buffer features in the input vector data
-            self.vp.buffer_features('railways', self.vp.vector_railways_buffered, self.vp.lulc_crs)
-            self.vp.buffer_features('roads', self.vp.vector_roads_buffered, self.vp.lulc_crs)
+        ## LULC PREPROCESSING 
+        self.lp = LULCDataPreprocessor(self.config, self.lulc_filepaths[year], self.working_dir)
+        
+        ## OSM PREPROCESSING
+        self.vp = VectorDataPreprocessor(self.config, self.working_dir, self.vector_dir, year, self.lp.raster_metadata.crs_info["epsg"], self.lp.raster_metadata.is_cartesian)
 
-    def merge_lulc_osm_data(self, years:list[int], save_osm_stressors:bool):
+    def buffer_vector_roads_and_railways(self):
+        """
+        Buffer vector railway and road features to be used for rasterization.
+        """
+        self.vp.buffer_features('railways', self.vp.vector_railways_buffered, self.vp.lulc_crs)
+        self.vp.buffer_features('roads', self.vp.vector_roads_buffered, self.vp.lulc_crs)
+
+
+    def merge_lulc_osm_data(self, year:int, save_osm_stressors:bool):
         """
         Merges the LULC and OSM data into a single raster dataset.
 
         Args:
-            years (list): list of years to process
+            year (int): year of the data to process
             save_osm_stressors (bool): flag to save the OSM stressors to a file for impedance recalculation
         """
-        for year in years:
-            ## rasterize vector layers
-            self.rasters_temp = self.rasterize_vector_layers(year, save_osm_stressors)
+        
+        ## rasterize vector layers
+        self.rasters_temp = self.rasterize_vector_layers(year, save_osm_stressors)
 
-            # merge rasters
-            lulc_upd = os.path.normpath(os.path.join(self.working_dir,self.output_dir,f'lulc_{year}_upd.tif'))
-            # TODO - to inherit the initial filename of input raster
-            
-            if self.verbose:
-                print(f"Enriched land-use/land-cover dataset(s) will be fetched to {lulc_upd}")
-                self.check_raster_dimensions([self.lulc_filepaths[year], *self.rasters_temp])
-            # NOTE below is an example of what we will have in the list 
-            # self.rasters_temp: /data/data/output/waterbodies_2017.tif /data/data/output/waterways_2017.tif /data/data/output/roads_2017.vrt /data/data/output/railways_2017.tif
+        # merge rasters
+        lulc_upd = os.path.normpath(os.path.join(self.working_dir,self.output_dir,f'lulc_{year}_upd.tif'))
+        # TODO - to inherit the initial filename of input raster
+        
+        if self.verbose:
+            print(f"Enriched land-use/land-cover dataset(s) will be fetched to {lulc_upd}")
+            self.check_raster_dimensions([self.lulc_filepaths[year], *self.rasters_temp])
+        # NOTE below is an example of what we will have in the list 
+        # self.rasters_temp: /data/data/output/waterbodies_2017.tif /data/data/output/waterways_2017.tif /data/data/output/roads_2017.vrt /data/data/output/railways_2017.tif
 
-            # overwrite rasters over input dataset in the following order: waterbodies, waterways, roads, railways
-            output_data, output_ds, nodata_value = self.overwrite_raster(self.lulc_filepaths[year], *self.rasters_temp)
-            print(f"FOR WRITING UPDATED LULC RASTER: {output_data, output_ds, nodata_value}")
-            self.write_raster(output_data, output_ds, lulc_upd, nodata_value)
-            # TODO - output dataset is not being assigned correctly nodatavalue - it is byte, but inherits 0 as nodatavalue from OSM stressors and -9999 from LULC stressors
+        # overwrite rasters over input dataset in the following order: waterbodies, waterways, roads, railways
+        output_data, output_ds, nodata_value = self.overwrite_raster(self.lulc_filepaths[year], *self.rasters_temp)
+        print(f"FOR WRITING UPDATED LULC RASTER: {output_data, output_ds, nodata_value}")
+        self.write_raster(output_data, output_ds, lulc_upd, nodata_value)
+        # TODO - output dataset is not being assigned correctly nodatavalue - it is byte, but inherits 0 as nodatavalue from OSM stressors and -9999 from LULC stressors
 
     def merge_tiffs_into_vrt(self, tiffs:list, output_path:str):
         """
@@ -169,7 +173,7 @@ class LULCEnrichmentWrapper():
 
         print(f"Output raster saved to {output_raster}")
 
-    def new_layer_from_attributes(self, vector_gpkg:str, layer_name:str, attribute:str, value:str, output_gpkg:str):
+    def filter_gpkg_by_attributes(self, vector_gpkg:str, layer_name:str, attribute:str, value:str, output_gpkg:str):
         """
         Create a new layer from the input layer based on the attribute value.
 
@@ -252,7 +256,7 @@ class LULCEnrichmentWrapper():
         for road_type in road_types:
             # create a new layer for each road type
             output_path = os.path.join(output_dir,f'roads_{road_type}.gpkg')
-            road_gpkg = self.new_layer_from_attributes(roads_gpkg, road_layer_name, 'highway', road_type, output_path)
+            road_gpkg = self.filter_gpkg_by_attributes(roads_gpkg, road_layer_name, 'highway', road_type, output_path)
             # edit roads path to include road type
             output_path = output_path.replace('.gpkg', f'_{year}.tif')
             self.rasterize_vector_layer(raster_metadata, road_gpkg, output_path, nodata_value=0, burn_value=burn_value, layer_name=f'roads_{road_type}')
@@ -280,7 +284,8 @@ class LULCEnrichmentWrapper():
         railways = os.path.join(self.stressors_dir,f'railways_{year}.tif')
         waterbodies = os.path.join(self.stressors_dir,f'waterbodies_{year}.tif')
         waterways = os.path.join(self.stressors_dir,f'waterways_{year}.tif')
-        rasters_temp = [waterbodies, waterways, roads, railways] # Order is important for next steps
+        vineyards = os.path.join(self.stressors_dir,f'vineyards_{year}.tif')
+        rasters_temp = [vineyards, waterbodies, waterways, roads, railways] # Order is important for next steps
         
         # rasterize roads and railways from buffered geometries
         osm_impedance_stressor_types = self.rasterize_vector_roads(year, os.path.dirname(roads), self.lp.raster_metadata, self.vp.vector_roads_buffered, burn_value=self.lp.lulc_codes["lulc_road"], groupby_roads=True)
@@ -290,7 +295,8 @@ class LULCEnrichmentWrapper():
 
         self.rasterize_vector_layer(self.lp.raster_metadata,self.vp.vector_refine, waterbodies, layer_name='waterbodies', nodata_value=0, burn_value=self.lp.lulc_codes["lulc_water"]) # read from the corresponding layer
         self.rasterize_vector_layer(self.lp.raster_metadata,self.vp.vector_refine, waterways, layer_name='waterways', nodata_value=0, burn_value=self.lp.lulc_codes["lulc_water"]) # read from the corresponding layer
-
+        self.rasterize_vector_layer(self.lp.raster_metadata,self.vp.vector_refine, vineyards, layer_name='vineyards', nodata_value=0, burn_value=self.lp.lulc_codes["lulc_vineyard"]) # read from the corresponding layer
+        
         # write osm_stressors to file
         if save_osm_stressors == True:
             # Path is hardcoded since it is a temporary file
@@ -403,7 +409,8 @@ class LULCEnrichmentWrapper():
 
         # apply the mask to the input raster
         in_data = in_band.ReadAsArray()
-        out_data = in_data * mask_data # TODO - to rewrite to avoid multiplying mask (LULC) by rasterised vector features
+        # mask out the input data where the mask is nodata, otherwise keep the input data
+        out_data = np.where(mask_data == nodata_value, nodata_value, in_data) # TODO - to rewrite to avoid multiplying mask (LULC) by rasterised vector features
 
         # write the masked data to the output raster
         out_band.WriteArray(out_data)
@@ -464,7 +471,7 @@ if __name__ == "__main__":
     config_path = os.path.join(os.getcwd(),"config", "config.yaml")
     lew = LULCEnrichmentWrapper(os.getcwd(),config_path, verbose=True)
     # prepare and merge LULC and OSM data
-    lew.prepare_lulc_osm_data(lew.years)
+    lew.initialise_data_processors(lew.years)
     # merge LULC and OSM data
     lew.merge_lulc_osm_data(lew.years, save_osm_stressors=True)
     print("LULC and OSM data processing complete.")

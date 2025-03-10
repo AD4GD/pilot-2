@@ -11,6 +11,7 @@ lulc_codes:
     lulc_road: 4 # corresponding LULC code ('built area'). ESA dataset: 7.  NE Catalonia: 4
     lulc_railway: 4 # ESA dataset: 7.  NE Catalonia: 4
     lulc_water: 2 # ESA dataset: 1.  NE Catalonia: 2
+    lulc_vineyard: 22 # ESA dataset: 3.  NE Catalonia: 3
     
 # landscape impedance based on LULC dataset
 impedance_tif: 'impedance_lulc_albera_ext_concat_{year}.tif' # added 'impedance_' prefix. For ESA dataset: 'impedance_lulc_esa_{year}.tif'.  NE Catalonia: 'impedance_lulc_ext_concat_upd_{year}.tif'

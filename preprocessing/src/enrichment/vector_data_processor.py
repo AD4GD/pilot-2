@@ -28,12 +28,14 @@ class VectorDataPreprocessor():
         self.year = year
         self.lulc_crs = lulc_crs
         self.lulc_is_cartesian = lulc_is_cartesian
-        self.vector_refine = self.load_auxillary_data(current_dir, vector_dir, year)
+        self.current_dir = current_dir
+        self.vector_dir = vector_dir
+        self.vector_refine = self.load_auxillary_data(self.current_dir, self.vector_dir , year)
         print(f"Path to the input vector dataset: {self.vector_refine}")
         self.vector_layer_names = self.check_vector_data(self.vector_refine, self.lulc_crs)
         # specify the output directory
-        self.vector_railways_buffered = os.path.join(current_dir,vector_dir, f"railways_{self.year}_buffered.gpkg")
-        self.vector_roads_buffered = os.path.join(current_dir,vector_dir, f"roads_{self.year}_buffered.gpkg")
+        self.vector_railways_buffered = os.path.join(self.current_dir,self.vector_dir , f"railways_{self.year}_buffered.gpkg")
+        self.vector_roads_buffered = os.path.join(self.current_dir,self.vector_dir , f"roads_{self.year}_buffered.gpkg")
     
     def load_auxillary_data(self,current_dir:str, vector_dir:str, year:int) -> str:
         """
@@ -132,6 +134,7 @@ class VectorDataPreprocessor():
             '-sql', check_column_query
         ]
 
+        #TODO refactor this process 06/03/2025
         try:
             result = subprocess.run(ogr_check_command, check=True, capture_output=True, text=True)
             # extract the COUNT(*) value from the output
@@ -207,9 +210,38 @@ class VectorDataPreprocessor():
             print(f"Successfully buffered {layer} layer and saved to {output_filepath}.")
             if result.stderr:
                 print(f"Warnings or errors:\n{result.stderr}")
+                os.remove(output_filepath)
         except subprocess.CalledProcessError as e:
-            print(f"Error buffering roads: {e.stderr}")
+            print(f"Error buffering layer: {e.stderr}")
+            os.remove(output_filepath)
         except Exception as e:
             print(f"Unexpected error: {str(e)}")
+            os.remove(output_filepath)
 
         print("-"*40)
+
+
+# for debugging
+if __name__ == "__main__":
+    from raster_metadata import RasterMetadata
+    import yaml
+
+    config_path = "./config/config.yaml"
+    with open(config_path , 'r') as file:
+        config = yaml.safe_load(file)
+    working_dir = os.getcwd()
+    vector_dir = os.path.join(working_dir,config["case_study_dir"],config['vector_dir'])
+    year = 2017
+    lulc_filepath = './data/shared/input/lulc/lulc_albera_ext_concat_{year}.tif'.format(year=year)
+    # cls.assertTrue(os.path.exists(lulc_filepath))
+    raster_metadata = RasterMetadata.from_raster(lulc_filepath)
+    vp = VectorDataPreprocessor(
+        config, 
+        working_dir, 
+        vector_dir, 
+        year, 
+        raster_metadata.crs_info["epsg"], 
+        raster_metadata.is_cartesian
+    )
+    vp.buffer_features('railways', vp.vector_railways_buffered, vp.lulc_crs)
+    vp.buffer_features('roads', vp.vector_roads_buffered, vp.lulc_crs)
