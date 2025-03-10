@@ -285,7 +285,7 @@ class LULCEnrichmentWrapper():
         waterbodies = os.path.join(self.stressors_dir,f'waterbodies_{year}.tif')
         waterways = os.path.join(self.stressors_dir,f'waterways_{year}.tif')
         vineyards = os.path.join(self.stressors_dir,f'vineyards_{year}.tif')
-        rasters_temp = [waterbodies, waterways, roads, railways] # Order is important for next steps
+        rasters_temp = [vineyards, waterbodies, waterways, roads, railways] # Order is important for next steps
         
         # rasterize roads and railways from buffered geometries
         osm_impedance_stressor_types = self.rasterize_vector_roads(year, os.path.dirname(roads), self.lp.raster_metadata, self.vp.vector_roads_buffered, burn_value=self.lp.lulc_codes["lulc_road"], groupby_roads=True)
