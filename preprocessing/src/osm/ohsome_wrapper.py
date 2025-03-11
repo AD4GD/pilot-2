@@ -2,7 +2,6 @@ import os
 import sys
 import requests
 import pandas as pd
-import matplotlib.pyplot as plt
 from io import StringIO
 import ssl
 from requests.adapters import HTTPAdapter
