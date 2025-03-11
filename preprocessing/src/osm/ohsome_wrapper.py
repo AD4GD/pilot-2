@@ -98,8 +98,8 @@ class OhsomeWrapper:
         timestamps = "{year}-12-31"
         if all_years:
             timestamps = ",".join(f"{year}-12-31" for year in self.years)
-        #get config keys with prefix 'overpass_filter_'
-        filters = [(key.split('_')[-1],key) for key in self.config.keys() if 'overpass_filter_' in key]
+        #get config keys with prefix 'ohsome_'
+        filters = [(key.split('_')[-1],key) for key in self.config.keys() if 'ohsome_' in key]
         for filter_name,config_key in filters:
             query_dict[filter_name] = self.ohsome_query_param_builder(self.bbox, showMetadata, properties, timestamps, self.config[config_key])
 

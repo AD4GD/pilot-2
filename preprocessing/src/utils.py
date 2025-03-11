@@ -65,7 +65,7 @@ def extract_layer_names(gpkg_path:str) -> list:
     return layers
 
 
-def extract_attribute_values(vector_gpkg:str, layer_name:str, attribute:str) -> list:
+def extract_attribute_values_from_gpkg(vector_gpkg:str, layer_name:str, attribute:str) -> list:
     """
     Extract all unique attribute values from a vector GeoPackage file.
     
@@ -78,28 +78,25 @@ def extract_attribute_values(vector_gpkg:str, layer_name:str, attribute:str) -> 
     """
 
     # open the vector data source
-    data_source = ogr.Open(vector_gpkg)
-    if data_source is None:
+    ds = ogr.Open(vector_gpkg)
+    if ds is None:
         raise RuntimeError(f"Failed to open the vector file: {vector_gpkg}")
 
     # get the layer from the data source (use first if not specified)
     if layer_name is None:
-        layer_name = data_source.GetLayer(0).GetName()
+        layer_name = ds.GetLayer(0).GetName()
         print(f"Layer name not specified. Using the first layer: {layer_name}")
-    layer = data_source.GetLayerByName(layer_name)
-    print(f"Layer name: {layer_name}")
 
-    # get unique values of the attribute
-    values = layer.GetNextFeature()
-    unique_values = set()
-    while values:
-        value = values.GetField(attribute)
-        if value is not None:
-            unique_values.add(value)
-        values = layer.GetNextFeature()
+    # use SQL query to get distinct values
+    sql_query = f"SELECT DISTINCT {attribute} FROM '{layer_name}'"
+    res = ds.ExecuteSQL(sql_query)
+
+    # collect unique values and release
+    unique_values = [feature.GetField(attribute) for feature in res]
+    ds.ReleaseResultSet(res)
+    ds = None
 
     return unique_values
-    
 
 def find_stressor_params(config_dict: dict, search_key: str):
     """

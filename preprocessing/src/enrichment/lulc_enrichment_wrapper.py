@@ -9,7 +9,7 @@ from osgeo import ogr, gdal
 import warnings
 
 # local modules
-from utils import load_yaml,extract_attribute_values,get_lulc_template,read_years_from_config
+from utils import load_yaml,extract_attribute_values_from_gpkg,get_lulc_template,read_years_from_config
 from raster_metadata import RasterMetadata
 from .lulc_data_processor import LULCDataPreprocessor
 from .vector_data_processor import VectorDataPreprocessor
@@ -21,13 +21,14 @@ class LULCEnrichmentWrapper():
     then rasterizes vector data and merges both rasters into a single raster dataset.
     """
     
-    def __init__(self, working_dir:str,config_path:str, verbose:bool) -> None:
+    def __init__(self, working_dir:str, config_path:str, osm_api_type:str, verbose:bool) -> None:
         """
         Initializes the LULC enrichment processor.
 
         Args:
             working_dir (str): path to the current/working directory
             config_path (str): path to the configuration file
+            osm_api_type (str): type of OSM API to use (overpass or ohsome) if user vector is not provided
             verbose (bool): verbose output
         """
         self.config = load_yaml(config_path)
@@ -46,6 +47,9 @@ class LULCEnrichmentWrapper():
 
         # create a dict of LULC files for each year
         self.lulc_filepaths = {year:get_lulc_template(self.config, year) for year in self.years}
+
+        self.osm_api_type = osm_api_type
+
 
     def initialise_data_processors(self, year:int):
         """
@@ -216,7 +220,7 @@ class LULCEnrichmentWrapper():
         
         return output_gpkg
    
-    def rasterize_vector_roads(self,year:int, output_dir:str, raster_metadata:str ,roads_gpkg:str, burn_value:int, groupby_roads:bool):
+    def rasterize_vector_roads(self, year:int, output_dir:str, raster_metadata:str ,roads_gpkg:str, burn_value:int, groupby_roads:bool):
         """
         Rasterize roads vector layer to be used for enriching the LULC dataset.
 
@@ -234,17 +238,22 @@ class LULCEnrichmentWrapper():
 
         #extract road types from roads geopackage
 
-        #NOTE we hard code the layer name since we know it is roads
+        #NOTE we can hard code the layer name since we know it is roads, but we can also extract it from the geopackage assuming there is only one layer
         # road_layer_name = [layer for layer in self.vp.vector_layer_names if 'road' in layer.lower()][0]
         road_layer_name = 'roads'
-        road_types = extract_attribute_values(roads_gpkg, road_layer_name, attribute='highway')
-        print(f"Road types found in the input vector file: {road_types}")
-
-        # extract the road types from the config file that match the road types
-        config_road_types = self.config.get('osm_roads', None).get('highway', None)[2].split("|")
-        print(f"Road types found in the configuration file: {config_road_types}")
-        # filter road types based on the config file
-        road_types = [road_type for road_type in road_types if any(attr in road_type for attr in config_road_types)]
+        if self.config.get('user_vector', None) is None:
+            road_types = extract_attribute_values_from_gpkg(roads_gpkg, road_layer_name, attribute='highway')
+            print(f"Road types found in the input vector file: {road_types}")
+        
+        else:
+            if self.osm_api_type == "overpass":
+                # extract the road types from the config file that match the road types
+                road_types = self.config.get('overpass_roads', None).get('highway', None)[2].split("|")
+                print(f"Road types found in the configuration file: {road_types}")
+            elif self.osm_api_type == "ohsome":
+                # extract the road types from the config file that match the road types
+                road_types = self.config.get('ohsome_roads', None).split("(")[2].split(")")[0].split(",")
+                print(f"Road types found in the configuration file: {road_types}")
 
         #group attributes by first suffix (e.g. primary, secondary, tertiary) split by '_'
         if groupby_roads:
@@ -469,9 +478,9 @@ class LULCEnrichmentWrapper():
     
 if __name__ == "__main__":
     config_path = os.path.join(os.getcwd(),"config", "config.yaml")
-    lew = LULCEnrichmentWrapper(os.getcwd(),config_path, verbose=True)
+    lew = LULCEnrichmentWrapper(os.getcwd(),config_path, osm_api_type="ohsome", verbose=True)
     # prepare and merge LULC and OSM data
-    lew.initialise_data_processors(lew.years)
+    lew.initialise_data_processors(lew.years[0])
     # merge LULC and OSM data
     lew.merge_lulc_osm_data(lew.years, save_osm_stressors=True)
     print("LULC and OSM data processing complete.")
