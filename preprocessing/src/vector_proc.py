@@ -23,8 +23,6 @@ class VectorTransform:
         - None
         """
         file_path = os.path.join(self.directory, filename)
-
-
         ds = ogr.Open(file_path)
         layer = ds.GetLayer(0)
         spatial_ref = layer.GetSpatialRef()
@@ -136,7 +134,7 @@ class VectorTransform:
             # close Geopackage
             data_source = None
 
-            return invalid_files
+        return invalid_files
         
 
     def fix_geometry_layer(self, layer:any,layer_name:any):
@@ -162,17 +160,20 @@ class VectorTransform:
                     print(f"Could not fix geometry in layer '{layer_name}', feature ID: {feature.GetFID()}")
                     invalid_feature_count += 1 # increment the number of features that cannot be fixed
 
-        # estin
+        # estin 
         if feature_to_fix_count == 0:
             print (f"All geometries of features in the layer '{layer_name}' of the output vector are valid.")
             print("-" * 40)
+            return True
         else:
-            print(f"Layer '{layer_name}: {fixed_feature_count} geometries fixed.") 
-            print(f"Layer '{layer_name}': {invalid_feature_count} geometries could not be fixed.")
-            print("-" * 40)
-
+            print(f"Layer '{layer_name}: {fixed_feature_count} geometries fixed.")
+            if invalid_feature_count > 0:
+                print(f"Layer '{layer_name}': {invalid_feature_count} geometries could not be fixed.")
+                print("-" * 40)
+                return False
+            return True
         
-    def fix_geometries_in_gpkg(self, invalid_files:dict[str,dict[str,bool]], overwrite:bool=False):
+    def fix_geometry_layers_in_gpkg(self, invalid_files:dict[str,dict[str,bool]], overwrite:bool=False):
         if len(invalid_files) == 0:
             return
         else:
@@ -193,20 +194,25 @@ class VectorTransform:
 
                 # open the output GeoPackage for editing
                 data_source = ogr.Open(fixed_gpkg, update=1)
+                is_valid = False
 
                 # if invalid layers are not specified, fix all layers
                 if layers is None:
                     for i in range(data_source.GetLayerCount()):
                         layer = data_source.GetLayerByIndex(i)
                         layer_name = layer.GetName()
-                        self.fix_geometry_layer(layer, layer_name)
+                        is_valid = self.fix_geometry_layer(layer, layer_name)
+                        if is_valid == False:
+                            raise Exception(f"{layer_name} still contains invalid geometries")
                 else:
                     for layer_name, invalid in layers.items():
                         if not invalid:
                             continue
                         else:
                             layer = data_source.GetLayerByName(layer_name)
-                            self.fix_geometry_layer(layer, layer_name)
+                            is_valid = self.fix_geometry_layer(layer, layer_name)
+                        if is_valid == False:
+                            raise Exception(f"{layer_name} still contains invalid geometries")
 
                 # close the data source
                 del data_source

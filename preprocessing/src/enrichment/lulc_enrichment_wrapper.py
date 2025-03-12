@@ -7,6 +7,7 @@ import yaml
 import os
 from osgeo import ogr, gdal
 import warnings
+import multiprocessing
 
 # local modules
 from utils import load_yaml,extract_attribute_values_from_gpkg,get_lulc_template,read_years_from_config
@@ -21,7 +22,7 @@ class LULCEnrichmentWrapper():
     then rasterizes vector data and merges both rasters into a single raster dataset.
     """
     
-    def __init__(self, working_dir:str, config_path:str, osm_api_type:str, verbose:bool) -> None:
+    def __init__(self, working_dir:str, config_path:str, osm_api_type:str, threads:int, verbose:bool) -> None:
         """
         Initializes the LULC enrichment processor.
 
@@ -49,6 +50,7 @@ class LULCEnrichmentWrapper():
         self.lulc_filepaths = {year:get_lulc_template(self.config, year) for year in self.years}
 
         self.osm_api_type = osm_api_type
+        self.max_threads = threads
 
 
     def initialise_data_processors(self, year:int):
@@ -71,6 +73,9 @@ class LULCEnrichmentWrapper():
         self.vp.buffer_features('railways', self.vp.vector_railways_buffered, self.vp.lulc_crs)
         self.vp.buffer_features('roads', self.vp.vector_roads_buffered, self.vp.lulc_crs)
 
+        # check the buffered vector files
+        files_to_validate = [self.vp.vector_roads_buffered, self.vp.vector_railways_buffered]
+        self.vp.check_vector_geometry_validity(files_to_validate)
 
     def merge_lulc_osm_data(self, year:int, save_osm_stressors:bool):
         """
@@ -188,6 +193,8 @@ class LULCEnrichmentWrapper():
             value (str): value to filter by
             output_gpkg (str): path to the output GeoPackage file
 
+        Returns:
+            str: path to the output GeoPackage file
         """
         print("Layer to access:", layer_name)
         ogr_command = f"""
@@ -262,17 +269,11 @@ class LULCEnrichmentWrapper():
         
         # for each road type, rasterize the roads
         road_tiffs = []
-        for road_type in road_types:
-            # create a new layer for each road type
-            output_path = os.path.join(output_dir,f'roads_{road_type}.gpkg')
-            road_gpkg = self.filter_gpkg_by_attributes(roads_gpkg, road_layer_name, 'highway', road_type, output_path)
-            # edit roads path to include road type
-            output_path = output_path.replace('.gpkg', f'_{year}.tif')
-            self.rasterize_vector_layer(raster_metadata, road_gpkg, output_path, nodata_value=0, burn_value=burn_value, layer_name=f'roads_{road_type}')
-            # delete the temporary layer
-            os.remove(road_gpkg)
-            road_tiffs.append(output_path)
 
+        with multiprocessing.Pool(self.max_threads) as pool:
+            road_gpkgs = pool.starmap(self.filter_gpkg_by_attributes, [(roads_gpkg, road_layer_name, 'highway', road_type, os.path.join(output_dir,f'roads_{road_type}.gpkg')) for road_type in road_types])
+            road_tiffs = pool.starmap(self.rasterize_vector_layer, [(raster_metadata, road_gpkg, road_gpkg.replace('.gpkg', f'_{year}.tif'), 0, burn_value, f'roads_{road_gpkg.split("_")[1].split(".")[0]}') for road_gpkg in road_gpkgs])
+            pool.map(os.remove, road_gpkgs)
         
         # build a roads.vrt file to merge all road types
         self.merge_tiffs_into_vrt(road_tiffs, os.path.join(output_dir,f'roads_{year}.vrt')) 
@@ -299,13 +300,18 @@ class LULCEnrichmentWrapper():
         # rasterize roads and railways from buffered geometries
         osm_impedance_stressor_types = self.rasterize_vector_roads(year, os.path.dirname(roads), self.lp.raster_metadata, self.vp.vector_roads_buffered, burn_value=self.lp.lulc_codes["lulc_road"], groupby_roads=True)
         self.rasterize_vector_layer(self.lp.raster_metadata,self.vp.vector_railways_buffered, railways, nodata_value=0, burn_value=self.lp.lulc_codes["lulc_railway"])
-        # add railway to stressors (because there is no railway type processing we use None)
+        # add railway to stressors (NOTE because there is no railway type processing we use None)
         osm_impedance_stressor_types['railways'] = None
-
-        self.rasterize_vector_layer(self.lp.raster_metadata,self.vp.vector_refine, waterbodies, layer_name='waterbodies', nodata_value=0, burn_value=self.lp.lulc_codes["lulc_water"]) # read from the corresponding layer
-        self.rasterize_vector_layer(self.lp.raster_metadata,self.vp.vector_refine, waterways, layer_name='waterways', nodata_value=0, burn_value=self.lp.lulc_codes["lulc_water"]) # read from the corresponding layer
-        self.rasterize_vector_layer(self.lp.raster_metadata,self.vp.vector_refine, vineyards, layer_name='vineyards', nodata_value=0, burn_value=self.lp.lulc_codes["lulc_vineyard"]) # read from the corresponding layer
         
+        # we can group the other unbuffered layers with multiprocessing techniques
+        process_layers = {
+            'waterbodies': (waterbodies, self.lp.lulc_codes["lulc_water"]),
+            'waterways': (waterways, self.lp.lulc_codes["lulc_water"]),
+            'vineyards': (vineyards, self.lp.lulc_codes["lulc_vineyard"])
+        }
+        with multiprocessing.Pool(self.max_threads) as pool:
+            rasters_temp = pool.starmap(self.rasterize_vector_layer, [(self.lp.raster_metadata, self.vp.vector_refine, output_path ,0, lulc_code, layer_name) for layer_name,(output_path,lulc_code) in process_layers.items()])
+
         # write osm_stressors to file
         if save_osm_stressors == True:
             # Path is hardcoded since it is a temporary file
@@ -478,9 +484,11 @@ class LULCEnrichmentWrapper():
     
 if __name__ == "__main__":
     config_path = os.path.join(os.getcwd(),"config", "config.yaml")
-    lew = LULCEnrichmentWrapper(os.getcwd(),config_path, osm_api_type="ohsome", verbose=True)
+    lew = LULCEnrichmentWrapper(os.getcwd(),config_path, osm_api_type="ohsome", threads=4, verbose=True)
     # prepare and merge LULC and OSM data
     lew.initialise_data_processors(lew.years[0])
+    #buffer vector roads and railways
+    lew.buffer_vector_roads_and_railways()
     # merge LULC and OSM data
-    lew.merge_lulc_osm_data(lew.years, save_osm_stressors=True)
+    lew.merge_lulc_osm_data(lew.years[0], save_osm_stressors=True)
     print("LULC and OSM data processing complete.")

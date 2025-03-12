@@ -199,6 +199,7 @@ def process_osm(
 def enrich_lulc(
     config_dir: Annotated[str, typer.Option(..., help="Directory with the configuration file")] = "./config",
     api_type: Annotated[str, typer.Option("--api", "-a", help="API to use for fetching OSM data. Choose from 'overpass' or 'ohsome)")] = None,
+    threads: Annotated[int, typer.Option("--threads", "-t", help="Number of threads to use for processing")] = 4,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
     save_osm_stressors: Annotated[bool, typer.Option("--save-osm-stressors", "-s", help="Save OSM stressors to file")] = False,
     record_time: Annotated[bool, typer.Option("--record-time", "-t", help="Record execution time")] = True
@@ -210,6 +211,7 @@ def enrich_lulc(
     Args:
         config_dir (str): Directory containing the configuration file.
         api_type (str): API to use for fetching OSM data. Choose from 'overpass' or 'ohsome' or leave blank if none were used.
+        threads (int): Number of threads to use for processing (default is 4).
         verbose (bool): Verbose mode.
         save_osm_stressors (bool): Save OSM stressors to file.
         record_time (bool): Record the execution time.
@@ -221,7 +223,7 @@ def enrich_lulc(
     config_path = os.path.join(config_dir, "config.yaml")
     check_file_exists(config_path)
     try:
-        lew = LULCEnrichmentWrapper(os.getcwd(),config_path,api_type,verbose)
+        lew = LULCEnrichmentWrapper(os.getcwd(),config_path,api_type,threads, verbose)
 
         # prompt user to use all years or a specific year
         if len(lew.years) > 1:
