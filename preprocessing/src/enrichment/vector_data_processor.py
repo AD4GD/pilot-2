@@ -32,7 +32,7 @@ class VectorDataPreprocessor():
         self.vector_dir = vector_dir
         self.vector_refine = self.load_auxillary_data(self.current_dir, self.vector_dir , year)
         print(f"Path to the input vector dataset: {self.vector_refine}")
-        self.vector_layer_names = self.check_vector_data(self.vector_refine, self.lulc_crs)
+        self.vector_layer_names = self.check_vector_data_crs(self.vector_refine, self.lulc_crs)
         # specify the output directory
         self.vector_railways_buffered = os.path.join(self.current_dir,self.vector_dir , f"railways_{self.year}_buffered.gpkg")
         self.vector_roads_buffered = os.path.join(self.current_dir,self.vector_dir , f"roads_{self.year}_buffered.gpkg")
@@ -72,7 +72,7 @@ class VectorDataPreprocessor():
         return os.path.normpath(os.path.join(current_dir,vector_dir,vector_filename))
     
 
-    def check_vector_data(self, vector_refine:str, crs:int) -> list:
+    def check_vector_data_crs(self, vector_filepath:str, crs:int) -> list:
         """
         Checks if the CRS of the vector data matches the input (LULC) data. If not, reprojects the vector data.
 
@@ -83,22 +83,39 @@ class VectorDataPreprocessor():
         Returns:
             list: list of vector layer names
         """
-        vector_layer_names = extract_layer_names(vector_refine) 
+        vector_layer_names = extract_layer_names(vector_filepath) 
         print(f"Layers found in the input vector file: {vector_layer_names}")
         formatted_layers = ', '.join(vector_layer_names)  # join layer names with a comma and space for readability
         print(f"Please continue if the layers in the vector file listed below are correct:\n {formatted_layers}.")
 
         # define full path with vector input directory
         # split path on last occurence of '/' and take the first part
-        filepath = os.sep.join(vector_refine.split(os.sep)[:-1])
-        vector_refine_path = os.path.join(filepath)
+        filepath = os.sep.join(vector_filepath.split(os.sep)[:-1])
+        vector_data_dir = os.path.join(filepath)
 
         # check if crs matches input raster (lulc). If not, reproject the vector data
-        Vt = VectorTransform(vector_refine_path)
+        Vt = VectorTransform(vector_data_dir)
         files_to_validate = Vt.reproject_vector(crs, overwrite=True)
         if len(files_to_validate) > 0:
-            Vt.fix_geometries_in_gpkg(Vt.geom_valid(files_to_validate), overwrite=True)
+            Vt.fix_geometry_layers_in_gpkg(Vt.geom_valid(files_to_validate), overwrite=True)
         return vector_layer_names
+    
+    def check_vector_geometry_validity(self, files_to_validate:list) -> bool:
+        """
+        Checks if the input vector layer is valid.
+
+        Args:
+            files_to_validate (list): The list of files to validate
+        Returns:
+            bool: True if the layer is valid, False otherwise
+        """
+
+        vector_data_dir = os.sep.join(str(files_to_validate[0]).split(os.sep)[:-1])
+        vt = VectorTransform(vector_data_dir)
+        invalid_files = vt.geom_valid(files_to_validate)
+        vt.fix_geometry_layers_in_gpkg(invalid_files, overwrite=True)
+
+      
     
     def buffer_features(self, layer:str, output_filepath:str, epsg:int=27700):
         """
@@ -154,7 +171,9 @@ class VectorDataPreprocessor():
             print("Width column exists in subset.")
             subquery = f"""
                 CASE 
-                    WHEN "width" IS NULL OR CAST("width" AS REAL) IS NULL THEN 
+                    WHEN "width" IS NULL 
+                    OR CAST("width" AS REAL) IS NULL 
+                    OR CAST("width" AS REAL) > {self.width_lev1} THEN 
                         CASE 
                             WHEN highway IN ('motorway', 'motorway_link', 'trunk', 'trunk_link') THEN {self.width_lev1}/2
                             WHEN highway IN ('primary', 'primary_link', 'secondary', 'secondary_link') THEN {self.width_lev2}/2

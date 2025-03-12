@@ -161,9 +161,9 @@ class OverpassWrapper():
 
         for query_key,comments in query_dict.items():
             exact_match = False
-            osm_tag_category = f"osm_{query_key}"
-            if osm_tag_category not in self.config:
-                raise TypeError(f"Configuration for {osm_tag_category} is missing in the configuration file.")
+            overpass_tag_category = f"overpass_{query_key}"
+            if overpass_tag_category not in self.config:
+                raise TypeError(f"Configuration for {overpass_tag_category} is missing in the configuration file.")
             if query_key == "waterbodies" or query_key == "waterways":
                 exact_match = True
 
@@ -176,7 +176,7 @@ class OverpassWrapper():
             [date:"{year}-12-31T23:59:59Z"]
             [bbox:{bbox}];
             (
-            {self.overpass_query_filter(osm_tag_category,exact_match)}
+            {self.overpass_query_filter(overpass_tag_category,exact_match)}
             );
             (._;>;);
             out;

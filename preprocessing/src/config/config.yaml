@@ -20,26 +20,29 @@ impedance: 'lulc_descr_albera.csv' # to fetch table with LULC types mapping with
 
 # vector data
 osm_data: 'osm_merged_{year}.gpkg' # derived from Open Street Map
-osm_roads: 
+
+# overpass filter queries
+overpass_roads: 
     highway: [way,"~",motorway|trunk|primary|secondary|tertiary]
-osm_railways: 
+overpass_railways: 
     railway: [way,"~",rail|light_rail|narrow_gauge|tram|preserved]
-osm_vineyards: 
+overpass_vineyards: 
     landuse: [way,"=",vineyard]
-osm_waterways: 
+overpass_waterways: 
     waterway: [way,"~",river|canal|flowline|tidal_channel]
     water: [way,"~",river|canal]
-osm_waterbodies: 
+overpass_waterbodies: 
     natural: [nwr,"=",water]
     water: [nwr,"~",cenote|lagoon|lake|oxbow|rapids|river|stream|stream_pool|canal|harbour|pond|reservoir|wastewater|tidal|natural]
     landuse: [nwr,"=",reservoir]
     waterway: [nwr,"=",riverbank]
 
-overpass_filter_roads: type:way and (highway in (motorway, motorway_link, trunk, trunk_link, primary, primary_link, secondary, secondary_link, tertiary, tertiary_link))
-overpass_filter_railways: type:way and (railway in (rail, light_rail, narrow_gauge, tram, preserved))
-overpass_filter_waterways: type:way and (waterway in (river, canal, flowline, tidal_channel))
-overpass_filter_waterbodies: natural=water or (water in (cenote, lagoon, lake, oxbow, rapids, river, stream, stream_pool, canal, harbour, pond, reservoir, wastewater, tidal, natural)) or (landuse=reservoir) or (waterway=riverbank)
-overpass_filter_vineyards: landuse=vineyard
+# ohsome filter queries
+ohsome_roads: type:way and (highway in (motorway, motorway_link, trunk, trunk_link, primary, primary_link, secondary, secondary_link, tertiary, tertiary_link))
+ohsome_railways: type:way and (railway in (rail, light_rail, narrow_gauge, tram, preserved))
+ohsome_waterways: type:way and (waterway in (river, canal, flowline, tidal_channel))
+ohsome_waterbodies: natural=water or (water in (cenote, lagoon, lake, oxbow, rapids, river, stream, stream_pool, canal, harbour, pond, reservoir, wastewater, tidal, natural)) or (landuse=reservoir) or (waterway=riverbank)
+ohsome_vineyards: landuse=vineyard
 
 user_vector: null # derived from other sources and provided by users ('null' by default)
 

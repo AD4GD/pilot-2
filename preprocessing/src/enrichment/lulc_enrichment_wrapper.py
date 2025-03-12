@@ -7,9 +7,10 @@ import yaml
 import os
 from osgeo import ogr, gdal
 import warnings
+import multiprocessing
 
 # local modules
-from utils import load_yaml,extract_attribute_values,get_lulc_template,read_years_from_config
+from utils import load_yaml,extract_attribute_values_from_gpkg,get_lulc_template,read_years_from_config
 from raster_metadata import RasterMetadata
 from .lulc_data_processor import LULCDataPreprocessor
 from .vector_data_processor import VectorDataPreprocessor
@@ -21,13 +22,14 @@ class LULCEnrichmentWrapper():
     then rasterizes vector data and merges both rasters into a single raster dataset.
     """
     
-    def __init__(self, working_dir:str,config_path:str, verbose:bool) -> None:
+    def __init__(self, working_dir:str, config_path:str, osm_api_type:str, threads:int, verbose:bool) -> None:
         """
         Initializes the LULC enrichment processor.
 
         Args:
             working_dir (str): path to the current/working directory
             config_path (str): path to the configuration file
+            osm_api_type (str): type of OSM API to use (overpass or ohsome) if user vector is not provided
             verbose (bool): verbose output
         """
         self.config = load_yaml(config_path)
@@ -46,6 +48,10 @@ class LULCEnrichmentWrapper():
 
         # create a dict of LULC files for each year
         self.lulc_filepaths = {year:get_lulc_template(self.config, year) for year in self.years}
+
+        self.osm_api_type = osm_api_type
+        self.max_threads = threads
+
 
     def initialise_data_processors(self, year:int):
         """
@@ -67,6 +73,9 @@ class LULCEnrichmentWrapper():
         self.vp.buffer_features('railways', self.vp.vector_railways_buffered, self.vp.lulc_crs)
         self.vp.buffer_features('roads', self.vp.vector_roads_buffered, self.vp.lulc_crs)
 
+        # check the buffered vector files
+        files_to_validate = [self.vp.vector_roads_buffered, self.vp.vector_railways_buffered]
+        self.vp.check_vector_geometry_validity(files_to_validate)
 
     def merge_lulc_osm_data(self, year:int, save_osm_stressors:bool):
         """
@@ -184,6 +193,8 @@ class LULCEnrichmentWrapper():
             value (str): value to filter by
             output_gpkg (str): path to the output GeoPackage file
 
+        Returns:
+            str: path to the output GeoPackage file
         """
         print("Layer to access:", layer_name)
         ogr_command = f"""
@@ -216,7 +227,7 @@ class LULCEnrichmentWrapper():
         
         return output_gpkg
    
-    def rasterize_vector_roads(self,year:int, output_dir:str, raster_metadata:str ,roads_gpkg:str, burn_value:int, groupby_roads:bool):
+    def rasterize_vector_roads(self, year:int, output_dir:str, raster_metadata:str ,roads_gpkg:str, burn_value:int, groupby_roads:bool):
         """
         Rasterize roads vector layer to be used for enriching the LULC dataset.
 
@@ -234,17 +245,22 @@ class LULCEnrichmentWrapper():
 
         #extract road types from roads geopackage
 
-        #NOTE we hard code the layer name since we know it is roads
+        #NOTE we can hard code the layer name since we know it is roads, but we can also extract it from the geopackage assuming there is only one layer
         # road_layer_name = [layer for layer in self.vp.vector_layer_names if 'road' in layer.lower()][0]
         road_layer_name = 'roads'
-        road_types = extract_attribute_values(roads_gpkg, road_layer_name, attribute='highway')
-        print(f"Road types found in the input vector file: {road_types}")
-
-        # extract the road types from the config file that match the road types
-        config_road_types = self.config.get('osm_roads', None).get('highway', None)[2].split("|")
-        print(f"Road types found in the configuration file: {config_road_types}")
-        # filter road types based on the config file
-        road_types = [road_type for road_type in road_types if any(attr in road_type for attr in config_road_types)]
+        if self.config.get('user_vector', None) is None:
+            road_types = extract_attribute_values_from_gpkg(roads_gpkg, road_layer_name, attribute='highway')
+            print(f"Road types found in the input vector file: {road_types}")
+        
+        else:
+            if self.osm_api_type == "overpass":
+                # extract the road types from the config file that match the road types
+                road_types = self.config.get('overpass_roads', None).get('highway', None)[2].split("|")
+                print(f"Road types found in the configuration file: {road_types}")
+            elif self.osm_api_type == "ohsome":
+                # extract the road types from the config file that match the road types
+                road_types = self.config.get('ohsome_roads', None).split("(")[2].split(")")[0].split(",")
+                print(f"Road types found in the configuration file: {road_types}")
 
         #group attributes by first suffix (e.g. primary, secondary, tertiary) split by '_'
         if groupby_roads:
@@ -253,17 +269,11 @@ class LULCEnrichmentWrapper():
         
         # for each road type, rasterize the roads
         road_tiffs = []
-        for road_type in road_types:
-            # create a new layer for each road type
-            output_path = os.path.join(output_dir,f'roads_{road_type}.gpkg')
-            road_gpkg = self.filter_gpkg_by_attributes(roads_gpkg, road_layer_name, 'highway', road_type, output_path)
-            # edit roads path to include road type
-            output_path = output_path.replace('.gpkg', f'_{year}.tif')
-            self.rasterize_vector_layer(raster_metadata, road_gpkg, output_path, nodata_value=0, burn_value=burn_value, layer_name=f'roads_{road_type}')
-            # delete the temporary layer
-            os.remove(road_gpkg)
-            road_tiffs.append(output_path)
 
+        with multiprocessing.Pool(self.max_threads) as pool:
+            road_gpkgs = pool.starmap(self.filter_gpkg_by_attributes, [(roads_gpkg, road_layer_name, 'highway', road_type, os.path.join(output_dir,f'roads_{road_type}.gpkg')) for road_type in road_types])
+            road_tiffs = pool.starmap(self.rasterize_vector_layer, [(raster_metadata, road_gpkg, road_gpkg.replace('.gpkg', f'_{year}.tif'), 0, burn_value, f'roads_{road_gpkg.split("_")[1].split(".")[0]}') for road_gpkg in road_gpkgs])
+            pool.map(os.remove, road_gpkgs)
         
         # build a roads.vrt file to merge all road types
         self.merge_tiffs_into_vrt(road_tiffs, os.path.join(output_dir,f'roads_{year}.vrt')) 
@@ -290,13 +300,18 @@ class LULCEnrichmentWrapper():
         # rasterize roads and railways from buffered geometries
         osm_impedance_stressor_types = self.rasterize_vector_roads(year, os.path.dirname(roads), self.lp.raster_metadata, self.vp.vector_roads_buffered, burn_value=self.lp.lulc_codes["lulc_road"], groupby_roads=True)
         self.rasterize_vector_layer(self.lp.raster_metadata,self.vp.vector_railways_buffered, railways, nodata_value=0, burn_value=self.lp.lulc_codes["lulc_railway"])
-        # add railway to stressors (because there is no railway type processing we use None)
+        # add railway to stressors (NOTE because there is no railway type processing we use None)
         osm_impedance_stressor_types['railways'] = None
-
-        self.rasterize_vector_layer(self.lp.raster_metadata,self.vp.vector_refine, waterbodies, layer_name='waterbodies', nodata_value=0, burn_value=self.lp.lulc_codes["lulc_water"]) # read from the corresponding layer
-        self.rasterize_vector_layer(self.lp.raster_metadata,self.vp.vector_refine, waterways, layer_name='waterways', nodata_value=0, burn_value=self.lp.lulc_codes["lulc_water"]) # read from the corresponding layer
-        self.rasterize_vector_layer(self.lp.raster_metadata,self.vp.vector_refine, vineyards, layer_name='vineyards', nodata_value=0, burn_value=self.lp.lulc_codes["lulc_vineyard"]) # read from the corresponding layer
         
+        # we can group the other unbuffered layers with multiprocessing techniques
+        process_layers = {
+            'waterbodies': (waterbodies, self.lp.lulc_codes["lulc_water"]),
+            'waterways': (waterways, self.lp.lulc_codes["lulc_water"]),
+            'vineyards': (vineyards, self.lp.lulc_codes["lulc_vineyard"])
+        }
+        with multiprocessing.Pool(self.max_threads) as pool:
+            rasters_temp = pool.starmap(self.rasterize_vector_layer, [(self.lp.raster_metadata, self.vp.vector_refine, output_path ,0, lulc_code, layer_name) for layer_name,(output_path,lulc_code) in process_layers.items()])
+
         # write osm_stressors to file
         if save_osm_stressors == True:
             # Path is hardcoded since it is a temporary file
@@ -469,9 +484,11 @@ class LULCEnrichmentWrapper():
     
 if __name__ == "__main__":
     config_path = os.path.join(os.getcwd(),"config", "config.yaml")
-    lew = LULCEnrichmentWrapper(os.getcwd(),config_path, verbose=True)
+    lew = LULCEnrichmentWrapper(os.getcwd(),config_path, osm_api_type="ohsome", threads=4, verbose=True)
     # prepare and merge LULC and OSM data
-    lew.initialise_data_processors(lew.years)
+    lew.initialise_data_processors(lew.years[0])
+    #buffer vector roads and railways
+    lew.buffer_vector_roads_and_railways()
     # merge LULC and OSM data
-    lew.merge_lulc_osm_data(lew.years, save_osm_stressors=True)
+    lew.merge_lulc_osm_data(lew.years[0], save_osm_stressors=True)
     print("LULC and OSM data processing complete.")
