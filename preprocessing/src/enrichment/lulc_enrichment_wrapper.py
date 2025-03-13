@@ -7,6 +7,7 @@ import yaml
 import os
 from osgeo import ogr, gdal
 import multiprocessing
+from typer import prompt
 
 # local modules
 from utils import load_yaml,extract_attribute_values_from_gpkg,get_lulc_template,read_years_from_config
@@ -266,14 +267,37 @@ class LULCEnrichmentWrapper():
         #NOTE we can hard code the layer name since we know it is roads, but we can also extract it from the geopackage assuming there is only one layer
         # road_layer_name = [layer for layer in self.vp.vector_layer_names if 'road' in layer.lower()][0]
         road_layer_name = 'roads'
-        if self.config.get('user_vector', None) is None:
+        if self.config.get('user_vector', None) is not None:
             road_types = extract_attribute_values_from_gpkg(roads_gpkg, road_layer_name, attribute='highway')
-            print(f"Road types found in the input vector file: {road_types}")
-        
+            confirm = str(prompt(
+                "Type 'yes' to confirm stressor types, or enter the list of stressor (OSM highway) types from the following list of detected road types:\n ", 
+                road_types,
+                type=str
+            )).lower()
+            if confirm == "yes" or confirm == "y":
+                print(f"Road types found in the input vector file: {road_types}")
+            else:
+                while True:
+                    valid = True
+                    user_input = confirm.split(",")
+                    for road_type in user_input:
+                        if road_type not in road_types:
+                            valid = False
+                            print(f"Invalid input: {road_type}")
+                    if valid:
+                        road_types = user_input
+                        break
+                    else:
+                        confirm = str(prompt("Enter the list of stressor (OSM highway) types from the following list: ", road_types,type=str)).lower()
+
+
+
+
+                
         else:
             if self.osm_api_type == "overpass":
                 # extract the road types from the config file that match the road types
-                road_types = self.config.get('overpass_roads', None).get('highway', None)[2].split("|")
+                road_types = self.config.get('overpass_roads', None).split("highway~\"^(")[1].split(")")[0].split("|")
                 print(f"Road types found in the configuration file: {road_types}")
             elif self.osm_api_type == "ohsome":
                 # extract the road types from the config file that match the road types
