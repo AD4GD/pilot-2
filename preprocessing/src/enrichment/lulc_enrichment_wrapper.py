@@ -77,13 +77,14 @@ class LULCEnrichmentWrapper():
         files_to_validate = [self.vp.vector_roads_buffered, self.vp.vector_railways_buffered]
         self.vp.check_vector_geometry_validity(files_to_validate)
 
-    def merge_lulc_osm_data(self, year:int, save_osm_stressors:bool):
+    def merge_lulc_osm_data(self, year:int, save_osm_stressors:bool, cog_compress:bool):
         """
         Merges the LULC and OSM data into a single raster dataset.
 
         Args:
             year (int): year of the data to process
             save_osm_stressors (bool): flag to save the OSM stressors to a file for impedance recalculation
+            cog_compress (bool): flag to compress the output raster as a Cloud Optimised Geotiff
         """
         
         ## rasterize vector layers
@@ -102,7 +103,7 @@ class LULCEnrichmentWrapper():
         # overwrite rasters over input dataset in the following order: waterbodies, waterways, roads, railways
         output_data, output_ds, nodata_value = self.overwrite_raster(self.lulc_filepaths[year], *self.rasters_temp)
         print(f"FOR WRITING UPDATED LULC RASTER: {output_data, output_ds, nodata_value}")
-        self.write_raster(output_data, output_ds, lulc_upd, nodata_value)
+        self.write_raster(output_data, output_ds, lulc_upd, nodata_value, cog_compress)
         # TODO - output dataset is not being assigned correctly nodatavalue - it is byte, but inherits 0 as nodatavalue from OSM stressors and -9999 from LULC stressors
 
     def merge_tiffs_into_vrt(self, tiffs:list, output_path:str):
@@ -149,7 +150,7 @@ class LULCEnrichmentWrapper():
             print(f"Dimensions of {os.path.basename(raster_path)}: {width} x {height}")
 
 
-    def write_raster(self, output_data:any, output_ds:any, output_raster:str, nodata_value:int):
+    def write_raster(self, output_data:any, output_ds:any, output_raster:str, nodata_value:int, cog_compress:bool):
         """
         Write a new raster dataset from the given data array.
 
@@ -158,12 +159,15 @@ class LULCEnrichmentWrapper():
             output_ds (gdal.Dataset): dataset of the input raster
             output_raster (str): path to the output raster dataset
             nodata_value (int): no data value for the output raster
+            cog_compress (bool): flag to compress the output raster as a Cloud Optimised Geotiff         
         """
 
+        temp_output_raster = output_raster if not cog_compress else output_raster + "_tmp.tif"
+        
         # get the driver to write a new GeoTIFF
         driver = gdal.GetDriverByName('GTiff')
-        out_ds = driver.Create(output_raster, output_ds.RasterXSize, output_ds.RasterYSize, 1, gdal.GDT_Byte)
-
+        out_ds = driver.Create(temp_output_raster, output_ds.RasterXSize, output_ds.RasterYSize, 1, gdal.GDT_Byte)
+    
         # set geo-transform and projection from the input raster
         out_ds.SetGeoTransform(output_ds.GetGeoTransform())
         out_ds.SetProjection(output_ds.GetProjection())
@@ -179,6 +183,21 @@ class LULCEnrichmentWrapper():
         out_band.FlushCache()
         out_ds = None  # close the file
         output_ds = None  # close the input file
+
+        if cog_compress:
+            print("Saving enriched LULC as a compressed Cloud Optimised Geotiff...")
+
+            # open temp_raster as a GDAL dataset before passing it
+            temp_ds = gdal.Open(temp_output_raster, gdal.GA_ReadOnly) 
+
+            cog_driver = gdal.GetDriverByName("COG")
+            cog_driver.CreateCopy(
+                output_raster, temp_ds,
+                options=['COMPRESS=LZW', 'BIGTIFF=IF_SAFER', 'OVERVIEWS=AUTO']
+            )
+            
+            temp_ds = None
+            os.remove(temp_output_raster)
 
         print(f"Output raster saved to {output_raster}")
 
@@ -490,5 +509,5 @@ if __name__ == "__main__":
     #buffer vector roads and railways
     lew.buffer_vector_roads_and_railways()
     # merge LULC and OSM data
-    lew.merge_lulc_osm_data(lew.years[0], save_osm_stressors=True)
+    lew.merge_lulc_osm_data(lew.years[0], save_osm_stressors=True, cog_compress=False)
     print("LULC and OSM data processing complete.")
