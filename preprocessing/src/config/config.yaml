@@ -44,8 +44,8 @@ overpass_vineyards: ['way[landuse=vineyard]']
 
 # ohsome filter queries
 ohsome_roads: type:way and (highway in (motorway, motorway_link, trunk, trunk_link, primary, primary_link, secondary, secondary_link, tertiary, tertiary_link)) and (tunnel!=*) and (bridge!=*)
-ohsome_railways: type:way and (railway in (rail, light_rail, narrow_gauge, tram, preserved)) and (tunnel!=*) and (bridge!=*)
-ohsome_waterways: type:way and (waterway in (river, canal, flowline, tidal_channel)) and (tunnel!=*) and (bridge!=*)
+ohsome_railways: type:way and (railway in (rail, light_rail, narrow_gauge, tram, preserved)) and (tunnel is null) and (bridge is null) and (tunnel!=*) and (bridge!=*)
+ohsome_waterways: type:way and (waterway in (river, canal, flowline, tidal_channel)) and (tunnel is null) and (bridge is null) and (tunnel!=*) and (bridge!=*)
 ohsome_waterbodies: natural=water or (water in (cenote, lagoon, lake, oxbow, rapids, river, stream, stream_pool, canal, harbour, pond, reservoir, wastewater, tidal, natural)) or (landuse=reservoir) or (waterway=riverbank)
 ohsome_vineyards: landuse=vineyard
 
