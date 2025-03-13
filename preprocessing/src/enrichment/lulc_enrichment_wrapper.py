@@ -289,15 +289,10 @@ class LULCEnrichmentWrapper():
                         break
                     else:
                         confirm = str(prompt("Enter the list of stressor (OSM highway) types from the following list: ", road_types,type=str)).lower()
-
-
-
-
-                
         else:
             if self.osm_api_type == "overpass":
                 # extract the road types from the config file that match the road types
-                road_types = self.config.get('overpass_roads', None).split("highway~\"^(")[1].split(")")[0].split("|")
+                road_types = self.config.get('overpass_roads', None)[0].split("highway~\"^(")[1].split(")")[0].split("|")
                 print(f"Road types found in the configuration file: {road_types}")
             elif self.osm_api_type == "ohsome":
                 # extract the road types from the config file that match the road types
@@ -526,7 +521,7 @@ class LULCEnrichmentWrapper():
     
 if __name__ == "__main__":
     config_path = os.path.join(os.getcwd(),"config", "config.yaml")
-    lew = LULCEnrichmentWrapper(os.getcwd(),config_path, osm_api_type="ohsome", threads=4, verbose=True)
+    lew = LULCEnrichmentWrapper(os.getcwd(),config_path, osm_api_type="overpass", threads=4, verbose=True)
     # prepare and merge LULC and OSM data
     lew.initialise_data_processors(lew.years[0])
     #buffer vector roads and railways
