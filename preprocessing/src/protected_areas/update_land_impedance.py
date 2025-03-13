@@ -7,6 +7,7 @@ import os
 import subprocess
 import pandas as pd
 import warnings
+from rich import print
 
 
 
@@ -29,8 +30,11 @@ class UpdateLandImpedance():
         self.lulc_dir = self.config.get('lulc_dir')
         self.lulc_pa_dir = os.path.join(working_dir,self.config.get("case_study_dir"), "output", "protected_areas", "lulc_pa")
         # read impedance_dir as the output folder
-        self.impedance_dir = os.path.join(working_dir,self.config.get("case_study_dir"), self.config["sub_case_study"] + "_" + self.config.get('impedance_dir'))
-
+        if self.config["sub_case_study"]:
+            self.impedance_dir = os.path.join(working_dir, self.config["case_study_dir"], self.config['impedance_dir'].split('/')[0], self.config["sub_case_study"] + "_" + self.config['impedance_dir'].split('/')[-1])
+        else:
+            self.impedance_dir = os.path.join(working_dir, self.config["case_study_dir"], self.config['impedance_dir'])
+        
         # read flag on reclassification table (lulc-impedance) from configuration file (true or false)
         # TODO - explicitly specify in CLI process-wdpa
         self.lulc_reclass_table = self.config.get('lulc_reclass_table')
@@ -39,7 +43,7 @@ class UpdateLandImpedance():
         #     warnings.warn("Flag on the usage of reclassification table is not found.")
 
         # read reclassification table (impedance) file with the reclassification table
-        self.impedance_reclass_table = os.path.join(self.config.get("case_study_dir"), self.config["sub_case_study"] + "_" + self.config.get('impedance_dir'), self.config.get('impedance'))
+        self.impedance_reclass_table = os.path.join(self.impedance_dir, self.config.get('impedance'))
         
         # read effect of protected areas (positive effect of protected areas on landscape impedance)
         self.pa_effect = self.config.get('pa_effect',None)
