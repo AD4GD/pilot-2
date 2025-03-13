@@ -1,9 +1,6 @@
-from warnings import warn
-from osgeo import gdal, ogr
+from osgeo import ogr
 import yaml
 import os
-from subprocess import Popen, PIPE
-
 
 def load_yaml(path:str) -> dict:
         """

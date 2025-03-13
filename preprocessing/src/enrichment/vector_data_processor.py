@@ -1,7 +1,6 @@
 import os
 import subprocess
 import warnings
-import text_matching
 
 # local imports
 from vector_proc import VectorTransform

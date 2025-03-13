@@ -4,7 +4,6 @@ from osm.osm_geojson_to_gpkg import OSMGeojsonToGpkg
 from osm.ohsome_wrapper import OhsomeWrapper
 from utils import load_yaml, read_years_from_config
 import shutil
-import timing
 
 class OSMWrapper():
 

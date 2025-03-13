@@ -6,7 +6,6 @@ from subprocess import Popen, PIPE
 import yaml
 import os
 from osgeo import ogr, gdal
-import warnings
 import multiprocessing
 
 # local modules

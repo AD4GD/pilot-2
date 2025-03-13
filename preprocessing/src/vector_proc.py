@@ -1,7 +1,6 @@
 import os
-from osgeo import ogr,gdal
+from osgeo import ogr
 import warnings
-import subprocess
 from subprocess import Popen, PIPE
 import shutil
 

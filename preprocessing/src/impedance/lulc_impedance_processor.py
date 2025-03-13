@@ -5,7 +5,8 @@ import geopandas as gpd
 import numpy as np
 import copy
 from osgeo import gdal
-from typing import Optional, Iterator
+from typing import Iterator
+# local imports
 from utils import get_lulc_template
 from impedance.interfaces.impedance_config_handler import ImpedanceConfigurationHandler
 

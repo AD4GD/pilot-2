@@ -1,12 +1,12 @@
-from raster_metadata import RasterMetadata
-from reprojection import RasterTransform
+
 import os
-import pyproj
 import requests
 import json
 import subprocess
-import warnings
+
+# local imports
 from utils import get_lulc_template
+from reprojection import RasterTransform
 import timing
 
 class OverpassWrapper():

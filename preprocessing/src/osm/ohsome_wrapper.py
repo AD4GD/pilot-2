@@ -1,24 +1,15 @@
 import os
-import sys
 import requests
-import pandas as pd
-from io import StringIO
 import ssl
 from requests.adapters import HTTPAdapter
-# import urllib3
 from urllib3.poolmanager import PoolManager
-# import certifi
-import logging
-import yaml
 import json
-import warnings
-from itertools import product  # import product for Cartesian product of lists
-import rasterio
-from pyproj import Transformer
 import time
+from rich import print as rprint
+# local imports
 from utils import get_lulc_template
 from reprojection import RasterTransform
-from rich import print as rprint
+
 
 # custom TLS Adapter to enforce TLSv1.2
 class TLSAdapter(HTTPAdapter):
