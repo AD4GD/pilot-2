@@ -22,25 +22,30 @@ impedance: 'lulc_descr_albera.csv' # to fetch table with LULC types mapping with
 osm_data: 'osm_merged_{year}.gpkg' # derived from Open Street Map
 
 # overpass filter queries
-overpass_roads: 
-    highway: [way,"~",motorway|trunk|primary|secondary|tertiary]
-overpass_railways: 
-    railway: [way,"~",rail|light_rail|narrow_gauge|tram|preserved]
-overpass_vineyards: 
-    landuse: [way,"=",vineyard]
-overpass_waterways: 
-    waterway: [way,"~",river|canal|flowline|tidal_channel]
-    water: [way,"~",river|canal]
-overpass_waterbodies: 
-    natural: [nwr,"=",water]
-    water: [nwr,"~",cenote|lagoon|lake|oxbow|rapids|river|stream|stream_pool|canal|harbour|pond|reservoir|wastewater|tidal|natural]
-    landuse: [nwr,"=",reservoir]
-    waterway: [nwr,"=",riverbank]
+overpass_roads: ['way[highway~"^(motorway|trunk|primary|secondary|tertiary)(_link)?$"][!"tunnel"][!"bridge"]']
+# also includes 'motorway_link',  'trunk_link' etc because they also restrict connectivity
+overpass_railways:  ['way[railway~"^(rail|light_rail|narrow_gauge|tram|preserved)(_link)?$"][!"tunnel"][!"bridge"]']
+# to include historical railways
+overpass_waterways: ['way[waterway~"^(river|canal|flowline|tidal_channel)"][!"tunnel"][!"bridge"]',
+                        'way[water~"^(river|canal)"][!"tunnel"][!"bridge"]'
+                    ]
+#^ and $ symbols to exclude 'riverbank' and 'derelict_canal'
+# second line has been added in case if some older features are missing 'way' tag
+overpass_waterbodies:   ['way[natural=water]',
+                            'way[water~"^(cenote|lagoon|lake|oxbow|rapids|river|stream|stream_pool|canal|harbour|pond|reservoir|wastewater|tidal|natural)"]',
+                            'way[landuse=reservoir]',
+                            'way[waterway=riverbank]'
+                        ]
+# second filter has been added to catch other water features at all timestamps 
+# third and fourth filters were added to catch other water features at older timestamps 
+# it is more reliable to query nodes, ways and relations altogether ('nwr') to fetch the complete polygon spatial features 
+overpass_vineyards: ['way[landuse=vineyard]']
+# to include vineyards and orchards
 
 # ohsome filter queries
-ohsome_roads: type:way and (highway in (motorway, motorway_link, trunk, trunk_link, primary, primary_link, secondary, secondary_link, tertiary, tertiary_link))
-ohsome_railways: type:way and (railway in (rail, light_rail, narrow_gauge, tram, preserved))
-ohsome_waterways: type:way and (waterway in (river, canal, flowline, tidal_channel))
+ohsome_roads: type:way and (highway in (motorway, motorway_link, trunk, trunk_link, primary, primary_link, secondary, secondary_link, tertiary, tertiary_link)) and (tunnel!=*) and (bridge!=*)
+ohsome_railways: type:way and (railway in (rail, light_rail, narrow_gauge, tram, preserved)) and (tunnel!=*) and (bridge!=*)
+ohsome_waterways: type:way and (waterway in (river, canal, flowline, tidal_channel)) and (tunnel!=*) and (bridge!=*)
 ohsome_waterbodies: natural=water or (water in (cenote, lagoon, lake, oxbow, rapids, river, stream, stream_pool, canal, harbour, pond, reservoir, wastewater, tidal, natural)) or (landuse=reservoir) or (waterway=riverbank)
 ohsome_vineyards: landuse=vineyard
 

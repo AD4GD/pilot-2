@@ -89,7 +89,7 @@ class OverpassWrapper():
                     print(json.dumps(element, indent=2))
                 
                 # Save the JSON data to a file
-                output_file = os.path.join(self.output_dir, f"{query_name}_overpass_pre_{year}.json")
+                output_file = os.path.join(self.output_dir, f"{query_name}_pre_{year}.json")
                 with open(output_file, 'w', encoding='utf-8') as f:
                     json.dump(data, f, ensure_ascii=False, indent=4)
                 print(f"Data has been saved to {output_file}")
@@ -106,30 +106,6 @@ class OverpassWrapper():
         return intermediate_jsons
     
 
-    def overpass_query_filter(self,osm_tag_category:str, exact_match:bool) -> str:
-        """
-        A function to build the filter section of the Overpass API query for a given osm_tag_category.
-
-        Args:
-            osm_tag_category (str): the osm_tag_category to filter (the relevant key in the config file)
-            exact_match (bool): whether to use the exclusion symbols (^ and $) in the filter query to match the exact value
-        Returns:
-            str: the filter query
-        """
-
-        filter_query = ""
-        attributes = dict(self.config.get(osm_tag_category))
-        for osm_tag,value in attributes.items():
-            attribute_type = value[0]
-            operator = value[1]
-            attribute_value = value[2]
-            if exact_match and operator == "~":
-                filter_query += f'{attribute_type}["{osm_tag}"{operator}"^({attribute_value})$"];\n'
-            else:
-                filter_query += f'{attribute_type}["{osm_tag}"{operator}"{attribute_value}"];\n'
-        return filter_query
-    
- 
     def overpass_query_builder(self, year:int, bbox:str) -> dict[str, str]:
         """
         A function to build the queries for Overpass API for a given year and bounding box, for roads, railways, waterways, and waterbodies.
@@ -142,30 +118,11 @@ class OverpassWrapper():
             dict: a dictionary of queries for roads, railways, waterways, and waterbodies
         """
 
-        # dictionary of queries with the keys as the OSM tag categories and the values as the queries (only comments are included in initialisation)
-        # TODO - to handle automatic changes in comments to query as Overpass Turbo restricts retries with unique URL
-        query_dict =  {
-        "roads": f"""/* also includes 'motorway_link',  'trunk_link' etc because they also restrict connectivity */""", 
-        "railways":f"""/* to include historical railways*/""", 
-        "vineyards":f"""/* to include vineyards and orchards*/""",
-        "waterways":f"""
-            /* ^ and $ symbols to exclude 'riverbank' and 'derelict_canal'*/ 
-            /*second line has been added in case if some older features are missing 'way' tag*/
-            """, 
-        "waterbodies":f"""
-            /*second filter has been added to catch other water features at all timestamps*/
-            /*third and fourth filters were added to catch other water features at older timestamps*/
-            /*it is more reliable to query nodes, ways and relations altogether ('nwr') to fetch the complete polygon spatial features*/
-            """
-        }
-
-        for query_key,comments in query_dict.items():
-            exact_match = False
-            overpass_tag_category = f"overpass_{query_key}"
-            if overpass_tag_category not in self.config:
-                raise TypeError(f"Configuration for {overpass_tag_category} is missing in the configuration file.")
-            if query_key == "waterbodies" or query_key == "waterways":
-                exact_match = True
+        # dictionary of queries with the keys as the OSM tag categories and the values.
+        # get query for each key in the config with "overpass_" prefix
+        query_dict = {key[9:]+"_"+key[:8] :"; \n".join([query_filter for query_filter in value]) for key,value in self.config.items() if key.startswith("overpass_")}
+        print(query_dict)
+        for query_key,filters in query_dict.items():
 
             #TODO: The data limit is 1GB. Could try split the query into smaller parts (bounding boxes) and run them separately.
             #NOTE: the issue with the above is that you might get IP blocked by the server. So, need to be careful with this.
@@ -173,14 +130,13 @@ class OverpassWrapper():
             [out:json]
             [maxsize:1073741824]
             [timeout:9000]
-            [date:"{year}-12-31T23:59:59Z"]
-            [bbox:{bbox}];
+            [date:"{year}-12-31T23:59:59Z"];
             (
-            {self.overpass_query_filter(overpass_tag_category,exact_match)}
+            {filters}
+            ({bbox});
+            node(w);
             );
-            (._;>;);
             out;
-            {comments}
             """
 
             query_dict[query_key] = query
@@ -217,8 +173,8 @@ class OverpassWrapper():
             year (int): the year of the data
         """
         for query_name, query in queries.items():
-            input_file = os.path.join(self.output_dir, f"{query_name}_overpass_pre_{year}.json")
-            output_file = os.path.join(self.output_dir, f"{query_name}_overpass_pre_{year}.geojson")
+            input_file = os.path.join(self.output_dir, f"{query_name}_pre_{year}.json")
+            output_file = os.path.join(self.output_dir, f"{query_name}_pre_{year}.geojson")
             result = subprocess.run(['osmtogeojson', input_file], capture_output=True, text=True)
             if result.returncode == 0:
                 print(f"Conversion to GeoJSON for {query_name} in the {year} year was successful.")
@@ -253,8 +209,8 @@ class OverpassWrapper():
         geojson_files=[]
 
         # iterate over the queries and define outputs
-        for query_name, query in queries.items():
-            geojson_file = os.path.join(self.output_dir, f"{query_name}_overpass_pre_{year}.geojson")
+        for query_name in queries.keys():
+            geojson_file = os.path.join(self.output_dir, f"{query_name}_pre_{year}.geojson")
 
             # check if the non-zero GeoJSON files exist
             if os.path.exists(geojson_file) and os.path.getsize(geojson_file) > 0:
@@ -309,7 +265,7 @@ class OverpassWrapper():
                 
                 # create new file 
                 if overwrite_original == False:
-                    geojson_file = os.path.join(self.output_dir, f"{query_name}_overpass_pre_{year}_filtered.geojson")
+                    geojson_file = os.path.join(self.output_dir, f"{query_name}_pre_{year}_filtered.geojson")
                 
                 # overwrite the original GeoJSON file with the filtered one
                 with open(geojson_file, 'w', encoding='utf-8') as f:
@@ -323,3 +279,15 @@ class OverpassWrapper():
                 print ("-" *30)
 
         return geojson_files
+    
+# for debugging
+if __name__ == "__main__":
+    from utils import load_yaml
+    config = load_yaml("./config/config.yaml")
+    year = 2017
+    ow = OverpassWrapper(config, "data/osm", True, [year])
+    queries = ow.overpass_query_builder(year, ow.bbox)
+    intermediate_jsons = ow.fetch_osm_data(queries, year)
+    ow.convert_to_geojson(queries, year)
+    ow.filter_geometries(queries, year, False)
+    print("Done")
