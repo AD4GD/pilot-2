@@ -172,8 +172,8 @@ def process_osm(
                 #prompt user to confirm which years to fetch
                 year = typer.prompt("Type 'all' to use all years, or enter the year to fetch OSM data from the following years: ", osm.years,type=str)
                 if year != "all":
-                    # repalce the years list with the selected year
-                    osm.years = [year]
+                    # replace the years list with the selected year
+                    osm.years = [int(year)]
 
         # fetch OSM data for the selected years using the selected API
         osm.osm_to_geojson(osm.years, skip_fetch)
@@ -231,7 +231,7 @@ def enrich_lulc(
             year = typer.prompt("Type 'all' to use all years, or enter the year to use for the LULC enrichment from the following years: ", lew.years,type=str)
             if year != "all":
                 # replace the years list with the selected year
-                lew.years = [year]
+                lew.years = [int(year)]
 
         for year in lew.years:
             # 1. prepare and merge LULC and OSM data
@@ -298,7 +298,7 @@ def recalc_impedance(
         year = typer.prompt("Type 'all' to use all years, or enter the year to use for the LULC enrichment from the following years: ", iw.years,type=str)
         if year != "all":
             # replace the years list with the selected year
-            iw.years = [year]
+            iw.years = [int(year)]
 
     for year in iw.years:
         # 1. Process the impedance configuration (initial setup + lulc & osm stressors)
