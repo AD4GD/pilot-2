@@ -227,7 +227,7 @@ def enrich_lulc(
 
         # prompt user to use all years or a specific year
         if len(lew.years) > 1:
-            year = typer.prompt("Type 'all' to use all years, or enter the year to use for the LULC enrichment from the following years: ", lew.years)
+            year = typer.prompt("Type 'all' to use all years, or enter the year to use for the LULC enrichment from the following years: ", lew.years,type=str)
             if year != "all":
                 # replace the years list with the selected year
                 lew.years = [year]
@@ -294,7 +294,7 @@ def recalc_impedance(
 
     # prompt user to use all years or a specific year
     if len(iw.years) > 1:
-        year = typer.prompt("Type 'all' to use all years, or enter the year to use for the LULC enrichment from the following years: ", iw.years)
+        year = typer.prompt("Type 'all' to use all years, or enter the year to use for the LULC enrichment from the following years: ", iw.years,type=str)
         if year != "all":
             # replace the years list with the selected year
             iw.years = [year]
