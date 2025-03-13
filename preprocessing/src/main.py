@@ -144,7 +144,7 @@ def process_osm(
     ):
     """
     Check if config exists. Fetches and translates Open Street Map data.
-    Example usage: python main.py process-osm --config-dir ./config --api ohsome  --verbose --skip-fetch --del-temp --record-time
+    Example usage: python main.py process-osm --config-dir ./config --api ohsome --verbose --skip-fetch --del-temp --record-time
 
     Args:
         config_dir (str): Directory containing the configuration file.
