@@ -200,13 +200,14 @@ def enrich_lulc(
     config_dir: Annotated[str, typer.Option(..., help="Directory with the configuration file")] = "./config",
     api_type: Annotated[str, typer.Option("--api", "-a", help="API to use for fetching OSM data. Choose from 'overpass' or 'ohsome)")] = None,
     threads: Annotated[int, typer.Option("--threads", "-t", help="Number of threads to use for processing")] = 4,
+    cog_compress: Annotated[bool, typer.Option("--cog-compress", "-c", help="Compress the output GeoTIFF files using Cloud Optimized GeoTIFF (COG)")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
     save_osm_stressors: Annotated[bool, typer.Option("--save-osm-stressors", "-s", help="Save OSM stressors to file")] = False,
-    record_time: Annotated[bool, typer.Option("--record-time", "-t", help="Record execution time")] = True
+    record_time: Annotated[bool, typer.Option("--record-time", "-t", help="Record execution time")] = False
     ):
     """
     Check if config exists. Processes and merges fetched data into output LULC dataset.
-    Example usage: python main.py enrich-lulc --config-dir ./config --verbose --save-osm-stressors
+    Example usage: python main.py enrich-lulc --config-dir ./config --api ohsome --threads 4 --cog-compress --save-osm-stressors --verbose --record-time
 
     Args:
         config_dir (str): Directory containing the configuration file.
@@ -227,7 +228,7 @@ def enrich_lulc(
 
         # prompt user to use all years or a specific year
         if len(lew.years) > 1:
-            year = typer.prompt("Type 'all' to use all years, or enter the year to use for the LULC enrichment from the following years: ", lew.years)
+            year = typer.prompt("Type 'all' to use all years, or enter the year to use for the LULC enrichment from the following years: ", lew.years,type=str)
             if year != "all":
                 # replace the years list with the selected year
                 lew.years = [year]
@@ -238,7 +239,7 @@ def enrich_lulc(
             # 1.2 buffer vector data
             lew.buffer_vector_roads_and_railways()
             # 2. rasterize vector data
-            lew.merge_lulc_osm_data(year, save_osm_stressors)
+            lew.merge_lulc_osm_data(year, save_osm_stressors, cog_compress)
 
     except Exception as e:
         err_console.print(f"Error: {e}")
@@ -294,7 +295,7 @@ def recalc_impedance(
 
     # prompt user to use all years or a specific year
     if len(iw.years) > 1:
-        year = typer.prompt("Type 'all' to use all years, or enter the year to use for the LULC enrichment from the following years: ", iw.years)
+        year = typer.prompt("Type 'all' to use all years, or enter the year to use for the LULC enrichment from the following years: ", iw.years,type=str)
         if year != "all":
             # replace the years list with the selected year
             iw.years = [year]

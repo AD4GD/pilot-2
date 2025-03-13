@@ -1,10 +1,5 @@
-import os
 import yaml
-import warnings
-import geopandas as gpd
-import numpy as np
-import copy
-from typing import Optional, Iterator
+# local imports
 from impedance.lulc_impedance_processor import LULCImpedanceProcessor
 from impedance.osm_impedance_processor import OSMImpedanceProcessor
 

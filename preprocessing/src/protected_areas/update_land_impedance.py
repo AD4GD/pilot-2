@@ -2,13 +2,9 @@
 from osgeo import gdal
 gdal.UseExceptions()
 import numpy as np
-import csv
 import os
 import subprocess
 import pandas as pd
-import warnings
-
-
 
 class UpdateLandImpedance():
     """

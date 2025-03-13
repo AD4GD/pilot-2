@@ -1,8 +1,7 @@
-import warnings
-from utils import load_yaml, save_yaml, get_max_from_tif, find_stressor_params, read_years_from_config
 from osgeo import gdal
-import numpy as np
 import os
+# local imports
+from utils import load_yaml, save_yaml, get_max_from_tif, find_stressor_params, read_years_from_config
 from impedance.impedance_processor import ImpedanceProcessor
 from impedance.impedance_config_processor import ImpedanceConfigProcessor
 

@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-import os 
 
 class ImpedanceConfigurationHandler(ABC):
     """Abstract class for processing impedance configuration files."""

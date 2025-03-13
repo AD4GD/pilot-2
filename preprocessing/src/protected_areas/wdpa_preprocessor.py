@@ -1,11 +1,9 @@
 import os
 import json
 import requests
-import warnings
-from itertools import product
-from utils import read_years_from_config, get_lulc_template
 
-#local imports
+# local imports
+from utils import read_years_from_config, get_lulc_template
 from reprojection import RasterTransform
 
 class WDPAPreprocessor():
