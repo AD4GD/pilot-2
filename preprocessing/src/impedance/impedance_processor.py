@@ -1,8 +1,9 @@
 import warnings
-from utils import find_stressor_params
 from osgeo import gdal
 import numpy as np
 import os
+# local imports
+from utils import find_stressor_params
 
 class ImpedanceProcessor():
     """

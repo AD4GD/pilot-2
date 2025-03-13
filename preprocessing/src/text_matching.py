@@ -1,7 +1,3 @@
-# import yaml
-# import os
-# already specified in parent Jupyter Notebook
-
 import warnings
 import geopandas as gpd
 

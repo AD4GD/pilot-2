@@ -1,11 +1,12 @@
 import geopandas as gpd
-import rasterio
 import os
 import subprocess
 import numpy as np
-from raster_metadata import RasterMetadata
 from osgeo import gdal
 from rich import print as rprint
+# local imports 
+from raster_metadata import RasterMetadata
+
 
 class PARasterizer:
     """

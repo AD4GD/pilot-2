@@ -1,6 +1,7 @@
-from utils import load_yaml
 import os
 import copy
+# local imports
+from utils import load_yaml
 from impedance.interfaces.impedance_config_handler import ImpedanceConfigurationHandler
 
 class OSMImpedanceProcessor(ImpedanceConfigurationHandler):
