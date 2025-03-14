@@ -338,8 +338,6 @@ def recalc_impedance(
                 err_console.print("Exiting...")
                 raise typer.Exit(code=1)
 
-
-    
     for year in iw.years:
         # 3.  Get the maximum value of the impedance raster dataset
         impedance_ds, impedance_max = iw.get_impedance_max_value(year)
@@ -372,10 +370,18 @@ def init(firstname: str, surname: str, formal: bool = False):
         typer.secho(f"Hello Mr. {firstname} {surname}", fg=typer.colors.GREEN, bg=typer.colors.YELLOW)
     else:
         typer.echo(f"Hello {firstname} {surname}")
-
     # err_console.print("This is an error message")
-
 
 
 if __name__ == "__main__":
     app()
+
+# Debugging
+# if __name__ == "__main__":
+#     process_wdpa(config_dir="./config", 
+#     use_yearly_pa_raster=True, 
+#     auto_confirm=True, 
+#     skip_fetch=True, 
+#     delete_intermediate_files=True, 
+#     verbose=True, 
+#     record_time=True)

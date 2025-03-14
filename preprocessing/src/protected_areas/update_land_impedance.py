@@ -25,7 +25,8 @@ class UpdateLandImpedance():
         self.lulc_dir = self.config.get('lulc_dir')
         self.lulc_pa_dir = os.path.join(working_dir,self.config.get("case_study_dir"), "output", "protected_areas", "lulc_pa")
         # read impedance_dir as the output folder
-        self.impedance_dir = os.path.join(working_dir,self.config.get("case_study_dir"), self.config["sub_case_study"] + "_" + self.config.get('impedance_dir'))
+        self.subcase_study = self.config['subcase_study'] + "_" if self.config.get('subcase_study', None) else ""
+        self.impedance_dir = os.path.join(working_dir,self.config["case_study_dir"], self.subcase_study + self.config['impedance_dir'])
 
         # read flag on reclassification table (lulc-impedance) from configuration file (true or false)
         # TODO - explicitly specify in CLI process-wdpa
@@ -35,7 +36,7 @@ class UpdateLandImpedance():
         #     warnings.warn("Flag on the usage of reclassification table is not found.")
 
         # read reclassification table (impedance) file with the reclassification table
-        self.impedance_reclass_table = os.path.join(self.config.get("case_study_dir"), self.config["sub_case_study"] + "_" + self.config.get('impedance_dir'), self.config.get('impedance'))
+        self.impedance_reclass_table = os.path.join(self.config.get("case_study_dir"), self.subcase_study + self.config.get('impedance_dir'), self.config.get('impedance'))
         
         # read effect of protected areas (positive effect of protected areas on landscape impedance)
         self.pa_effect = self.config.get('pa_effect',None)
@@ -156,6 +157,11 @@ class UpdateLandImpedance():
         # apply the multiplier to impedance where intersection with protected areas (LULC > 100)  occurs
         output_data = np.where(lulc_pa_data > 100, impedance_data * pa_effect, impedance_data)
 
+        #print both to check
+        print(lulc_pa_data)
+        print(impedance_data)
+        print(output_data)
+
         # write output raster
         driver = gdal.GetDriverByName("GTiff")
         out_impedance_ds = driver.Create(
@@ -172,14 +178,18 @@ class UpdateLandImpedance():
         out_impedance_band = out_impedance_ds.GetRasterBand(1)
         out_impedance_band.WriteArray(output_data)
         out_impedance_band.SetNoDataValue(9999)
-
+        
+        # flush the cache to save the output raster
+        out_impedance_band.FlushCache()
+        out_impedance_ds.FlushCache()
+        
         # close datasets
         impedance_ds = None
         lulc_pa_ds = None
         out_impedance_ds = None
         print(f"Multiplier has been applied to impedance dataset. Output saved to: {self.impedance_dir}")
 
-        return (data_type)
+        return data_type
     
     def generate_impedance_reclass_dict(self, reclass_table:str) -> tuple[dict, bool, str]:
         """
@@ -255,8 +265,9 @@ class UpdateLandImpedance():
 
         print(f"Output raster path: {output_raster}")
         
-        # initialize output raster
+        # initialize output raster in edit mode
         driver = gdal.GetDriverByName("GTiff")
+       
         try:
             if has_decimal:
                 output_dataset = driver.Create(output_raster, cols, rows, 1, gdal.GDT_Float32)
@@ -284,14 +295,16 @@ class UpdateLandImpedance():
         # apply reclassification using dictionary mapping
         output_data = np.vectorize(reclass_dict.get)(input_data)
         output_band.WriteArray(output_data)
+        # flush the cache to save the output raster
+        output_band.FlushCache()
+        output_dataset.FlushCache()
 
         '''FOR CHECKS
         print (f"input_data_shape is': {input_data.shape}")
         print (f"output_data_shape is': {output_data.shape}")
         '''
-        
         # close datasets
         dataset = None
         output_dataset = None
 
-        return (data_type)
+        return data_type

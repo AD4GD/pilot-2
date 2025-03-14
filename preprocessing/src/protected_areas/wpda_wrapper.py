@@ -111,7 +111,7 @@ class WDPAWrapper():
 
         rp = PARasterizer(merged_gpkg, lulc_dir,raster_output_dir)
         rp.reproject_pa_data(rp.lulc_metadata.crs_info["epsg"],filter_by_year=pa_to_yearly_rasters)
-        rp.rasterize_pa_geopackage(rp.lulc_metadata, pa_to_yearly_rasters, keep_intermediate_gpkg=False) 
+        rp.rasterize_pa_geopackage(rp.lulc_metadata, pa_to_yearly_rasters, keep_intermediate_gpkg=False)
 
     def sum_lulc_pa_rasters(self,input_path:str, output_path:str, lulc_dir:str, use_yearly_pa_rasters:bool) -> None:
         """
@@ -140,7 +140,8 @@ class WDPAWrapper():
             None
         """
         os.makedirs(affinity_dir, exist_ok=True)
-        impedance_dir = os.path.join(self.working_dir, self.config["case_study_dir"], self.config["sub_case_study"] + "_" + self.config["impedance_dir"])
+        subcase_study = self.config['subcase_study'] + "_" if self.config.get('subcase_study', None) else ""
+        impedance_dir = os.path.join(self.working_dir,self.config["case_study_dir"], subcase_study + self.config['impedance_dir'])
         
         lae = LandscapeAffinityEstimator(impedance_dir, affinity_dir)
         lae.compute_affinity(os.listdir(impedance_dir))
@@ -165,23 +166,23 @@ if __name__ == "__main__":
     # get the case study directory
     case_study_dir = str(wp.config.get("case_study_dir"))
     case_study = case_study_dir.split("/")[-1]
-    print(f"Case study: {case_study}")
-    # country_codes = wp.get_lulc_country_codes()
-    country_codes = {'FRA', 'ESP'}
-    print(f"Country protected areas to fetch: {country_codes}")
-    merged_gpkg = case_study + "_merged_pa.gpkg"
-    merged_gpkg = wp.protected_area_to_merged_geopackage(country_codes, merged_gpkg, skip_fetch=True)
-    lulc_dir = wp.config.get("lulc_dir")
-    wp.rasterize_protected_areas(merged_gpkg, lulc_dir, pa_to_yearly_rasters=False)
+    # print(f"Case study: {case_study}")
+    # # country_codes = wp.get_lulc_country_codes()
+    # country_codes = {'FRA', 'ESP'}
+    # print(f"Country protected areas to fetch: {country_codes}")
+    # merged_gpkg = case_study + "_merged_pa.gpkg"
+    # merged_gpkg = wp.protected_area_to_merged_geopackage(country_codes, merged_gpkg, skip_fetch=True)
+    # lulc_dir = wp.config.get("lulc_dir")
+    # wp.rasterize_protected_areas(merged_gpkg, lulc_dir, pa_to_yearly_rasters=False)
 
-    # delete the merged GeoPackage file
-    os.remove(merged_gpkg)
+    # # delete the merged GeoPackage file
+    # os.remove(merged_gpkg)
 
-    wp.sum_lulc_pa_rasters(
-        input_path=os.path.join(working_dir, case_study_dir, "input"),
-        output_path=os.path.join(working_dir, case_study_dir, "output"),
-        lulc_dir=lulc_dir
-    )
+    # wp.sum_lulc_pa_rasters(
+    #     input_path=os.path.join(working_dir, case_study_dir, "input"),
+    #     output_path=os.path.join(working_dir, case_study_dir, "output"),
+    #     lulc_dir=lulc_dir
+    # )
     wp.reclassify_raster_with_impedance()
-    wp.compute_affinity(os.path.join(working_dir, case_study_dir, "output", "affinity"))
+    # wp.compute_affinity(os.path.join(working_dir, case_study_dir, "output", "affinity"))
 

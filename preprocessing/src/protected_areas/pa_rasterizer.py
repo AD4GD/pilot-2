@@ -1,4 +1,5 @@
 import geopandas as gpd
+import pandas as pd
 import os
 import subprocess
 import numpy as np
@@ -88,6 +89,7 @@ class PARasterizer:
 
             # loop through each year_stamp and create subsets
             for year_stamp in self.year_stamps:
+                subsets_dict[year_stamp] = []
                 # loop through each geodataframe (layer of geopackage)
                 for layer, gdf in self.gdfs.items():
                     print(f"Processing {layer}...")
@@ -103,21 +105,26 @@ class PARasterizer:
                     # filter Geodataframe based on the year_stamp
                     subset = gdf[gdf['year'] <= np.datetime64(str(year_stamp))]
 
-                    # store subset in the dictionary with year_stamp as key
-                    subsets_dict[year_stamp] = subset
-
                     # print key-value pairs of subsets 
                     print(f"Protected areas are filtered according to year stamps of LULC and PAs' establishment year: {year_stamp}")
 
                     # reproject geodataframe to the CRS of input rastser dataset
                     subset = subset.to_crs(target_crs)
 
-                    # ADDITIONAL BLOCK IF EXPORT TO GEOPACKAGE IS NEEDED (currently needed as rasterizing vector data is not possible with geodataframes)
-                    ## save filtered subset to a new GeoPackage
-                    subset.to_file(os.path.join(self.output_dir,f"pas_{year_stamp}.gpkg"), driver='GPKG')
-                    print(f"Filtered protected areas are written to:",os.path.join(self.output_dir,f"pas_{year_stamp}.gpkg"))
+                    # store subset in the dictionary with year_stamp as key
+                    subsets_dict[year_stamp].append(subset)
 
             print ("---------------------------")
+            # # ADDITIONAL BLOCK IF EXPORT TO GEOPACKAGE IS NEEDED (currently needed as rasterizing vector data is not possible with geodataframes)
+            # Merge each subset of years back into a single GeoPackage
+            for year, subsets in subsets_dict.items():
+                # merge all the subsets into a single GeoDataFrame
+                merged_gdf = gpd.GeoDataFrame(pd.concat(subsets, ignore_index=True), crs=subsets_dict[year][0].crs)
+                # save the merged GeoDataFrame to a new GeoPackage
+                output_path = os.path.join(self.output_dir, f"pa_{year}.gpkg")
+                merged_gdf.to_file(output_path, driver='GPKG')
+                print(f"Filtered protected areas are merged and written to:",output_path)
+
         else:
             for layer, gdf in self.gdfs.items():
                 print(f"Processing {layer}...")
@@ -129,8 +136,9 @@ class PARasterizer:
                 # reproject geodataframe to the CRS of input raster dataset
                 gdf = gdf.to_crs(target_crs)
                 # save the reprojected geodataframe to a new GeoPackage
-                gdf.to_file(os.path.join(self.output_dir, "pa.gpkg"), driver='GPKG')
-                print(f"Protected areas are written to:",os.path.join(self.output_dir, "pa.gpkg"))
+                output_path = os.path.join(self.output_dir, "pa_multi_year.gpkg")
+                gdf.to_file(output_path, driver='GPKG')
+                print(f"Protected areas are written to:",output_path)
         
     def rasterize_pa(self, lulc_metadata:RasterMetadata, vector_filepath:str, output_filepath:str):
         """
@@ -200,7 +208,7 @@ class PARasterizer:
                 pas_yearstamp_raster_path = os.path.join(self.output_dir, output_path)
                 self.rasterize_pa(lulc_metadata, pas_yearstamp_path, pas_yearstamp_raster_path)
 
-                # remove intermediate GeoPackage files if keep_intermediate_gpkg is False
+                #remove intermediate GeoPackage files if keep_intermediate_gpkg is False
                 if not keep_intermediate_gpkg:
                     os.remove(pas_yearstamp_path)
                     rprint(f"[yellow] Intermediate GeoPackage {reprojected_pa} has been removed. [/yellow]")
@@ -208,12 +216,11 @@ class PARasterizer:
         # if rasterize_all_years is False, rasterize the one reprojected pa file.
         else:
             # rasterize the one reprojected pa file.
-            reprojected_pa = os.path.join(self.output_dir, "pa.gpkg") # (input file)
-            reprojected_pa_raster = os.path.join(self.output_dir, "pas.tif") # (output file)
+            reprojected_pa = os.path.join(self.output_dir, "pa_multi_year.gpkg") # (input file)
+            reprojected_pa_raster = os.path.join(self.output_dir, "pa_multi_year.tif") # (output file)
             self.rasterize_pa(lulc_metadata, reprojected_pa, reprojected_pa_raster)
 
             # remove intermediate GeoPackage files if keep_intermediate_gpkg is False
             if not keep_intermediate_gpkg:
                 os.remove(reprojected_pa)
                 rprint(f"[yellow] Intermediate GeoPackage {reprojected_pa} has been removed. [/yellow]")
-            
