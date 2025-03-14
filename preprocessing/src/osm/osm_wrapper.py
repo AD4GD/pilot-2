@@ -117,7 +117,7 @@ class OSMWrapper():
             fixed_gpkg_path = os.path.join(self.gpkg_dir, f'osm_merged_{year}_fixed.gpkg')
             ogtg.merge_gpkg_files(output_file)
             gpkg_path = ogtg.fix_geometries_in_gpkg(output_file, fixed_gpkg_path)
-            #Move file to vector_dir for next notebook
+            #Move file to vector_dir for next component
             shutil.move(gpkg_path, os.path.join(self.vector_dir, f'osm_merged_{year}.gpkg'))
 
     

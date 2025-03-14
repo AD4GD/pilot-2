@@ -1,1 +1,1 @@
-{railways: null, roads: [primary, secondary, motorway, tertiary]}
+{railways: null, roads: [motorway, secondary, trunk, tertiary, primary]}
