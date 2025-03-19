@@ -109,7 +109,9 @@ class WDPAWrapper():
         raster_output_dir = os.path.join(self.pa_output_dir, "pa_rasters")
         os.makedirs(raster_output_dir, exist_ok=True)
 
-        rp = PARasterizer(merged_gpkg, lulc_dir,raster_output_dir)
+        case_study = self.config['case_study_dir'].split('/')[-1]
+
+        rp = PARasterizer(merged_gpkg, lulc_dir, case_study, raster_output_dir)
         rp.reproject_pa_data(rp.lulc_metadata.crs_info["epsg"],filter_by_year=pa_to_yearly_rasters)
         rp.rasterize_pa_geopackage(rp.lulc_metadata, pa_to_yearly_rasters, keep_intermediate_gpkg=False)
 
@@ -140,8 +142,11 @@ class WDPAWrapper():
             None
         """
         os.makedirs(affinity_dir, exist_ok=True)
-        subcase_study = self.config['subcase_study'] + "_" if self.config.get('subcase_study', None) else ""
-        impedance_dir = os.path.join(self.working_dir,self.config["case_study_dir"], subcase_study + self.config['impedance_dir'])
+
+        if self.config["subcase_study"]:
+            impedance_dir = os.path.join(self.working_dir, self.config["case_study_dir"], self.config['impedance_dir'].split('/')[0], self.config["subcase_study"] + "_" + self.config['impedance_dir'].split('/')[-1])
+        else:
+            impedance_dir = os.path.join(self.working_dir, self.config["case_study_dir"], self.config['impedance_dir'])
         
         lae = LandscapeAffinityEstimator(impedance_dir, affinity_dir)
         lae.compute_affinity(os.listdir(impedance_dir))

@@ -49,11 +49,10 @@ def process_wdpa(
     delete_intermediate_files: Annotated[bool, typer.Option("--del-temp", "-dt", help="Delete intermediate GeoJSON & GPKG files")] = True,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
     record_time: Annotated[bool, typer.Option("--record-time", "-t", help="Record execution time")] = False,
-
 ):
     """
     Preprocess data on protected areas for each year of LULC data.
-    Example usage: python main.py process-wdpa --config-dir ./config --force --skip-fetch --del-temp --verbose --record-time
+    Example usage: python main.py process-wdpa --config-dir ./config --force --skip-fetch --verbose --record-time
     
     Args:
         config_dir (str): Directory containing the configuration file.
@@ -144,7 +143,7 @@ def process_osm(
     ):
     """
     Check if config exists. Fetches and translates Open Street Map data.
-    Example usage: python main.py process-osm --config-dir ./config --api ohsome  --verbose --skip-fetch --del-temp --record-time
+    Example usage: python main.py process-osm --config-dir ./config --api ohsome --skip-fetch --verbose --del-temp --record-time
 
     Args:
         config_dir (str): Directory containing the configuration file.

@@ -13,13 +13,12 @@ class LandscapeAffinityEstimator:
     def __init__(self, impedance_dir:str, affinity_dir:str) -> None:
         """
         Initialize the Landscape_Affinity_Estimator class.
-
-        Args:
-            impedance_dir (str): The path to the impedance directory.
+            impedance_dir (str): The path to the impedance directory
             affinity_dir (str): The path to the affinity
         """
         self.impedance_dir = impedance_dir
         self.affinity_dir = affinity_dir
+
         # create output directory if it doesn't exist
         os.makedirs(affinity_dir, exist_ok=True)
 

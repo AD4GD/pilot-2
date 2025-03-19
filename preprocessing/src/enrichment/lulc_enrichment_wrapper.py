@@ -295,8 +295,8 @@ class LULCEnrichmentWrapper():
                 road_types = self.config.get('overpass_roads', None)[0].split("highway~\"^(")[1].split(")")[0].split("|")
                 print(f"Road types found in the configuration file: {road_types}")
             elif self.osm_api_type == "ohsome":
-                # extract the road types from the config file that match the road types
-                road_types = self.config.get('ohsome_roads', None).split("(")[2].split(")")[0].split(",")
+                # extract the road types from the config file that match the road types. list(map(str.strip())) will delete extra spaces
+                road_types = list(map(str.strip, self.config.get('ohsome_roads', "").split("(")[2].split(")")[0].split(",")))
                 print(f"Road types found in the configuration file: {road_types}")
 
         #group attributes by first suffix (e.g. primary, secondary, tertiary) split by '_'
