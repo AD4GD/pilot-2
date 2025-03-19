@@ -21,11 +21,12 @@ class LULCDataPreprocessor():
         """
         self.config = config
         self.impedance_file = self.config.get('impedance', None)
-        impedance_dir = os.path.join(working_dir, self.config["case_study_dir"], self.config["sub_case_study"] + "_" + self.config['impedance_dir'])
+        self.subcase_study = self.config['subcase_study'] + "_" if self.config.get('subcase_study', None) else ""
+        self.impedance_dir = os.path.join(working_dir,self.config["case_study_dir"], self.subcase_study + self.config['impedance_dir'])
 
-        if self.impedance_file is not None and impedance_dir is not None:
+        if self.impedance_file is not None and self.impedance_dir is not None:
             # define path
-            self.impedance_file = os.path.join(working_dir,impedance_dir,self.impedance_file)
+            self.impedance_file = os.path.join(working_dir,self.impedance_dir,self.impedance_file)
             print(f"Using auxiliary tabular data from {self.impedance_file}.")
         else:
             warnings.warn("auxiliary tabular data was not provided.")

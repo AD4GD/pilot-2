@@ -113,7 +113,7 @@ class WDPAWrapper():
 
         rp = PARasterizer(merged_gpkg, lulc_dir, case_study, raster_output_dir)
         rp.reproject_pa_data(rp.lulc_metadata.crs_info["epsg"],filter_by_year=pa_to_yearly_rasters)
-        rp.rasterize_pa_geopackage(rp.lulc_metadata, pa_to_yearly_rasters, keep_intermediate_gpkg=False) 
+        rp.rasterize_pa_geopackage(rp.lulc_metadata, pa_to_yearly_rasters, keep_intermediate_gpkg=False)
 
     def sum_lulc_pa_rasters(self,input_path:str, output_path:str, lulc_dir:str, use_yearly_pa_rasters:bool) -> None:
         """
@@ -142,8 +142,9 @@ class WDPAWrapper():
             None
         """
         os.makedirs(affinity_dir, exist_ok=True)
-        if self.config["sub_case_study"]:
-            impedance_dir = os.path.join(self.working_dir, self.config["case_study_dir"], self.config['impedance_dir'].split('/')[0], self.config["sub_case_study"] + "_" + self.config['impedance_dir'].split('/')[-1])
+
+        if self.config["subcase_study"]:
+            impedance_dir = os.path.join(self.working_dir, self.config["case_study_dir"], self.config['impedance_dir'].split('/')[0], self.config["subcase_study"] + "_" + self.config['impedance_dir'].split('/')[-1])
         else:
             impedance_dir = os.path.join(self.working_dir, self.config["case_study_dir"], self.config['impedance_dir'])
         

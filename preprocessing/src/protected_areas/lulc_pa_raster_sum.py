@@ -78,9 +78,9 @@ class LulcPaRasterSum():
             year = lulc_file_with_null.split("_")[-2].split(".")[0]
             if self.use_yearly_pa_rasters:
                 # check if matching year pa file exists
-                pa_file = os.path.join(self.pa_path, f"pas_{year}.tif")
+                pa_file = os.path.join(self.pa_path, f"pa_{year}.tif")
             else:
-                pa_file = os.path.join(self.pa_path, "pas.tif")
+                pa_file = os.path.join(self.pa_path, "pa_multi_year.tif")
             if os.path.exists(pa_file):
                 lulc_pa_sum_file = os.path.join(self.lulc_upd_compr_path, f"lulc_{year}_pa.tif")
                 gdal_command = " ".join([
@@ -103,6 +103,22 @@ class LulcPaRasterSum():
 
 # Example usage
 if __name__ == "__main__":
-    lprs = LulcPaRasterSum("data/input","data/output",'lulc_albera_ext_concat_{year}.tif', "lulc_temp", "pa_rasters", "lulc_pa")
+    from utils import load_yaml
+    working_dir = os.getcwd()
+    config = load_yaml("config/config.yaml")
+    case_study_dir = str(config.get("case_study_dir"))
+    case_study = case_study_dir.split("/")[-1]
+    
+    lulc_file = './data/shared/input/lulc/lulc_albera_ext_concat_{year}.tif'.format(year=2017)
+    lprs = LulcPaRasterSum(
+        input_path=os.path.join(working_dir, case_study_dir, "input"),
+        output_path=os.path.join(working_dir, case_study_dir, "output"),
+        lulc_dir=config.get("lulc_dir"),
+        use_yearly_pa_rasters=True,
+        lulc_with_null_path="lulc_temp",
+        pa_path="pa_rasters",
+        lulc_upd_compr_path="lulc_pa"
+    )
     lprs.assign_no_data_values()
+
     lprs.combine_pa_lulc()

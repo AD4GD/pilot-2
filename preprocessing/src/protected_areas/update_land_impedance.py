@@ -25,11 +25,12 @@ class UpdateLandImpedance():
         self.lulc_dir = self.config.get('lulc_dir')
         self.lulc_pa_dir = os.path.join(working_dir,self.config.get("case_study_dir"), "output", "protected_areas", "lulc_pa")
         # read impedance_dir as the output folder
-        if self.config["sub_case_study"]:
-            self.impedance_dir = os.path.join(working_dir, self.config["case_study_dir"], self.config['impedance_dir'].split('/')[0], self.config["sub_case_study"] + "_" + self.config['impedance_dir'].split('/')[-1])
+
+        if self.config["subcase_study"]:
+            self.impedance_dir = os.path.join(working_dir, self.config["case_study_dir"], self.config['impedance_dir'].split('/')[0], self.config["subcase_study"] + "_" + self.config['impedance_dir'].split('/')[-1])
         else:
             self.impedance_dir = os.path.join(working_dir, self.config["case_study_dir"], self.config['impedance_dir'])
-        
+
         # read flag on reclassification table (lulc-impedance) from configuration file (true or false)
         # TODO - explicitly specify in CLI process-wdpa
         self.lulc_reclass_table = self.config.get('lulc_reclass_table')
@@ -38,6 +39,7 @@ class UpdateLandImpedance():
         #     warnings.warn("Flag on the usage of reclassification table is not found.")
 
         # read reclassification table (impedance) file with the reclassification table
+
         self.impedance_reclass_table = os.path.join(self.impedance_dir, self.config.get('impedance'))
         
         # read effect of protected areas (positive effect of protected areas on landscape impedance)
@@ -101,9 +103,10 @@ class UpdateLandImpedance():
                     continue
                 base_name, extension = os.path.splitext(impedance_file)
 
-                # get the corresponding LULC file for this impedance file
-                lulc_file_base = impedance_file[len("impedance_"):]  # Removes 'impedance_'
-                lulc_file = os.path.join(self.lulc_dir, lulc_file_base)
+                # get the corresponding LULC file for this impedance file (get year from the filename)
+                year = base_name.split('_')[-1]
+                lulc_file_base = f"lulc_{year}_pa.tif"
+                lulc_file = os.path.join(self.lulc_pa_dir, lulc_file_base)
 
                 # modify the output raster filename to ensure it's different from the input raster filename
                 output_file = f"{base_name}_pa{extension}"
@@ -124,14 +127,14 @@ class UpdateLandImpedance():
                 print("Multiplication complete for:", impedance_in_path + "\n------------------------------------")
         
     
-    def apply_multiplier(self, impedance_in_path:str, impedance_out_path:str, lulc_path:str, reclass_table:str, pa_effect:float) -> str:
+    def apply_multiplier(self, impedance_in_path:str, impedance_out_path:str, lulc_pa_path:str, reclass_table:str, pa_effect:float) -> str:
         """
         Multiplies a raster based on the effect of protected areas.
 
         Args:
             impedance_in_path (str): The path to the input impedance raster.
             impedance_out_path (str): The path to the output impedance raster.
-            lulc_path (str): The path to the input LULC raster.
+            lulc_pa_path (str): The path to the input LULC raster.
             reclass_table (str): The path to the table with values of reclassification from LULC codes to landscape impedance values.
             pa_effect (float): The value of PA effect.
 
@@ -140,9 +143,9 @@ class UpdateLandImpedance():
         """
 
         reclass_dict,has_decimal,data_type = self.generate_impedance_reclass_dict(reclass_table)
-        # open the impedance dataset
-        impedance_ds = gdal.Open(impedance_in_path)
-        lulc_pa_ds = gdal.Open(lulc_path)
+        # open the impedance dataset and LULC dataset in read-only mode
+        impedance_ds = gdal.Open(impedance_in_path, gdal.GA_ReadOnly)
+        lulc_pa_ds =  gdal.Open(lulc_pa_path, gdal.GA_ReadOnly)
         if impedance_ds is None or lulc_pa_ds is None:
             print("Error: Could not open LULC or impedance dataset.")
             return
@@ -160,29 +163,29 @@ class UpdateLandImpedance():
         output_data = np.where(lulc_pa_data > 100, impedance_data * pa_effect, impedance_data)
 
         # write output raster
-        driver = gdal.GetDriverByName("GTiff")
-        out_impedance_ds = driver.Create(
-            impedance_out_path, # save to the same folder
-            impedance_ds.RasterXSize, 
-            impedance_ds.RasterYSize, 
-            1, 
-            impedance_band.DataType
+        out_impedance_ds = gdal.GetDriverByName("GTiff").CreateCopy(
+            utf8_path = impedance_out_path, # save to the same folder,
+            src = impedance_ds, # copy the metadata
+            strict = 1, # use the same data type
+            options = ['COMPRESS=LZW']
         )
-        out_impedance_ds.SetProjection(impedance_ds.GetProjection())
-        out_impedance_ds.SetGeoTransform(impedance_ds.GetGeoTransform())
 
         # write modified data
         out_impedance_band = out_impedance_ds.GetRasterBand(1)
         out_impedance_band.WriteArray(output_data)
         out_impedance_band.SetNoDataValue(9999)
-
+        
+        # flush the cache to save the output raster
+        out_impedance_band.FlushCache()
+        out_impedance_ds.FlushCache()
+        
         # close datasets
         impedance_ds = None
         lulc_pa_ds = None
         out_impedance_ds = None
         print(f"Multiplier has been applied to impedance dataset. Output saved to: {self.impedance_dir}")
 
-        return (data_type)
+        return data_type
     
     def generate_impedance_reclass_dict(self, reclass_table:str) -> tuple[dict, bool, str]:
         """
@@ -258,8 +261,9 @@ class UpdateLandImpedance():
 
         print(f"Output raster path: {output_raster}")
         
-        # initialize output raster
+        # initialize output raster in edit mode
         driver = gdal.GetDriverByName("GTiff")
+       
         try:
             if has_decimal:
                 output_dataset = driver.Create(output_raster, cols, rows, 1, gdal.GDT_Float32)
@@ -287,14 +291,16 @@ class UpdateLandImpedance():
         # apply reclassification using dictionary mapping
         output_data = np.vectorize(reclass_dict.get)(input_data)
         output_band.WriteArray(output_data)
+        # flush the cache to save the output raster
+        output_band.FlushCache()
+        output_dataset.FlushCache()
 
         '''FOR CHECKS
         print (f"input_data_shape is': {input_data.shape}")
         print (f"output_data_shape is': {output_data.shape}")
         '''
-        
         # close datasets
         dataset = None
         output_dataset = None
 
-        return (data_type)
+        return data_type
