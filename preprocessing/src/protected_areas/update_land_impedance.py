@@ -99,9 +99,10 @@ class UpdateLandImpedance():
                     continue
                 base_name, extension = os.path.splitext(impedance_file)
 
-                # get the corresponding LULC file for this impedance file
-                lulc_file_base = impedance_file[len("impedance_"):]  # Removes 'impedance_'
-                lulc_file = os.path.join(self.lulc_dir, lulc_file_base)
+                # get the corresponding LULC file for this impedance file (get year from the filename)
+                year = base_name.split('_')[-1]
+                lulc_file_base = f"lulc_{year}_pa.tif"
+                lulc_file = os.path.join(self.lulc_pa_dir, lulc_file_base)
 
                 # modify the output raster filename to ensure it's different from the input raster filename
                 output_file = f"{base_name}_pa{extension}"
@@ -122,14 +123,14 @@ class UpdateLandImpedance():
                 print("Multiplication complete for:", impedance_in_path + "\n------------------------------------")
         
     
-    def apply_multiplier(self, impedance_in_path:str, impedance_out_path:str, lulc_path:str, reclass_table:str, pa_effect:float) -> str:
+    def apply_multiplier(self, impedance_in_path:str, impedance_out_path:str, lulc_pa_path:str, reclass_table:str, pa_effect:float) -> str:
         """
         Multiplies a raster based on the effect of protected areas.
 
         Args:
             impedance_in_path (str): The path to the input impedance raster.
             impedance_out_path (str): The path to the output impedance raster.
-            lulc_path (str): The path to the input LULC raster.
+            lulc_pa_path (str): The path to the input LULC raster.
             reclass_table (str): The path to the table with values of reclassification from LULC codes to landscape impedance values.
             pa_effect (float): The value of PA effect.
 
@@ -138,9 +139,9 @@ class UpdateLandImpedance():
         """
 
         reclass_dict,has_decimal,data_type = self.generate_impedance_reclass_dict(reclass_table)
-        # open the impedance dataset
-        impedance_ds = gdal.Open(impedance_in_path)
-        lulc_pa_ds = gdal.Open(lulc_path)
+        # open the impedance dataset and LULC dataset in read-only mode
+        impedance_ds = gdal.Open(impedance_in_path, gdal.GA_ReadOnly)
+        lulc_pa_ds =  gdal.Open(lulc_pa_path, gdal.GA_ReadOnly)
         if impedance_ds is None or lulc_pa_ds is None:
             print("Error: Could not open LULC or impedance dataset.")
             return
@@ -157,22 +158,13 @@ class UpdateLandImpedance():
         # apply the multiplier to impedance where intersection with protected areas (LULC > 100)  occurs
         output_data = np.where(lulc_pa_data > 100, impedance_data * pa_effect, impedance_data)
 
-        #print both to check
-        print(lulc_pa_data)
-        print(impedance_data)
-        print(output_data)
-
         # write output raster
-        driver = gdal.GetDriverByName("GTiff")
-        out_impedance_ds = driver.Create(
-            impedance_out_path, # save to the same folder
-            impedance_ds.RasterXSize, 
-            impedance_ds.RasterYSize, 
-            1, 
-            impedance_band.DataType
+        out_impedance_ds = gdal.GetDriverByName("GTiff").CreateCopy(
+            utf8_path = impedance_out_path, # save to the same folder,
+            src = impedance_ds, # copy the metadata
+            strict = 1, # use the same data type
+            options = ['COMPRESS=LZW']
         )
-        out_impedance_ds.SetProjection(impedance_ds.GetProjection())
-        out_impedance_ds.SetGeoTransform(impedance_ds.GetGeoTransform())
 
         # write modified data
         out_impedance_band = out_impedance_ds.GetRasterBand(1)
