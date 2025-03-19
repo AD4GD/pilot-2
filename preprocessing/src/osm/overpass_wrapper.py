@@ -44,7 +44,7 @@ class OverpassWrapper():
         # convert the bounding box to a string
         self.bbox = ",".join([str(coord) for coord in self.bbox])
 
-    def fetch_osm_data(self,queries:dict, year:int , overpass_url:str = "https://overpass-api.de/api/interpreter") -> list:
+    def fetch_osm_data(self, queries:dict, year:int , overpass_url:str = "https://overpass-api.de/api/interpreter") -> list:
         """
         A function to fetch OSM data for a given set of queries and a year.
 

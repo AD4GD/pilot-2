@@ -52,14 +52,14 @@ class OSMWrapper():
             queries = ow.overpass_query_builder(year, bbox=ow.bbox)
             
             # fetch the OSM data for the year
-            if skip_fetch == False:
+            intermediate_jsons = [os.path.join(self.osm_output_data_dir, file) for file in os.listdir(self.osm_output_data_dir) if f'overpass_pre_{year}.json' in file]
+            if skip_fetch == True and len(intermediate_jsons) <= 0:
+                raise ValueError(f"No JSON files found for year {year}. Please re-run the command with skip_fetch=False.")
+            elif skip_fetch == False:
                 intermediate_jsons = ow.fetch_osm_data(queries=queries, year=year)
                 if self.verbose:
                     [print(f"Created JSON file: {intermediate_json}, ") for intermediate_json in intermediate_jsons]
-            else:
-                #read all json files with the year in the name
-                intermediate_jsons = [os.path.join(self.osm_output_data_dir, file) for file in os.listdir(self.osm_output_data_dir) if f'overpass_pre_{year}.json' in file]
-
+ 
             # convert the intermediate JSON files to GeoJSON files
             ow.convert_to_geojson(queries=queries, year=year)
             # fix invalid geometries in the GeoJSON files
@@ -77,11 +77,13 @@ class OSMWrapper():
         """
         ow = OhsomeWrapper(self.config, self.osm_output_data_dir, years, self.verbose)
         all_years = True if len(years) > 1 else False # if more than one year is provided, then fetch all years combined into one JSON file
+        year = years[-1]
+        intermediate_jsons = [os.path.join(self.osm_output_data_dir, file) for file in os.listdir(self.osm_output_data_dir) if f'ohsome_pre_{year}.json' in file]
         if self.verbose:
             print(f"Verbose outputs enabled, so filtered features will be created as new *_filtered.geojson files")
-        if skip_fetch == True:
-            year = years[-1]
-            intermediate_jsons = [os.path.join(self.osm_output_data_dir, file) for file in os.listdir(self.osm_output_data_dir) if f'ohsome_pre_{year}.json' in file]
+        if skip_fetch == True and len(intermediate_jsons) <= 0:
+            raise ValueError(f"No JSON files found for year {year}. Please re-run the command with skip_fetch=False.")
+        elif skip_fetch == True:
             ow.convert_to_geojson(intermediate_jsons, year)
         else:
             ow.fetch_osm_data(years, ow.ohsome_query_builder(all_years), timeout=600)
