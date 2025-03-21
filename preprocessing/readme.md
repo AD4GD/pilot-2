@@ -177,7 +177,7 @@ Error: /src/data/cat_aggr_buf_30m/input/vector/osm_merged_2012.gpkg_transformed.
 **Solution**: run the command again with the same parameters.
 - **Warning**: if you delete stressors, you would have to calculate them again using the 3d command to proceed with the 4th command.
 
-Not each issue is known so far, so if you have faced something different, please let us know by opening a new issue.
+Not each issue is known so far, so if you have faced something different, please let us know by opening a new issue. **All relevant issues are mentioned** [**here**](https://github.com/AD4GD/pilot-2/issues). 
 
 #### Further development
 This tool is mostly complete, but a few improvements could be made if there is demand from users.

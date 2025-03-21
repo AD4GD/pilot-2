@@ -447,6 +447,9 @@ class LULCEnrichmentWrapper():
         # get raster properties
         in_band = in_ds.GetRasterBand(1)
         mask_band = mask_ds.GetRasterBand(1)
+        mask_nodata_val = mask_band.GetNoDataValue()
+        print(f"Nodata value of the masking raster dataset: {mask_nodata_val}")
+
         out_driver = gdal.GetDriverByName('GTiff')
         if output_raster is None:
             out_ds = gdal.Open(input_raster, gdal.GA_Update)
@@ -458,7 +461,7 @@ class LULCEnrichmentWrapper():
 
         # create a mask array from the mask raster
         mask_data = mask_band.ReadAsArray()
-        mask_data[mask_data == 0] = nodata_value
+        mask_data[mask_data == mask_nodata_val] = nodata_value
 
         # apply the mask to the input raster
         in_data = in_band.ReadAsArray()
