@@ -14,9 +14,8 @@ Calculates 'landscape impedance' datasets based on user-defined biodiversity str
 Detailed documentation on each nested component is given at the beginnings of corresponding Jupyter Notebooks and includes descriptions of all input and output datasets valid for v 1.0.0.
 
 Sample input datasets are different for v1.0.0 and v2.0.0.  
-**v1.0.0**  
-Sample dataset is from [ESA Sentinel-2 World Cover](https://collections.sentinel-hub.com/impact-observatory-lulc-map/) remote sensing collections, covering a part of Northern England.  
-**v2.0.0**  
+**v1.0.0**: Sample dataset is from [ESA Sentinel-2 World Cover](https://collections.sentinel-hub.com/impact-observatory-lulc-map/) remote sensing collections, covering a part of Northern England.  
+**v2.0.0**:  
 - From the [land-use/land-cover map of Catalonia (MCSC)](https://www.opengis.grumets.cat/MCSC) with 7 LULC types, covering the whole of Catalonia, located [here](src/data/cat_aggr_buf_30m).
 - The subdataset of MCSC Catalonia, covering only the small north-eastern part, but including 24 LULC types, located [here](src/data/case_study_albera).
 As input LULC datasets can be potentially used across multiple sub case studies, they are located in the [shared](src/data/shared).
