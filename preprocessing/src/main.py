@@ -45,7 +45,7 @@ def process_wdpa(
     config_dir: Annotated[str, typer.Option(..., help="Directory with the configuration file")] = "./config",
     use_yearly_pa_raster: Annotated[bool, typer.Option("--enrich-single-year", "-e", help="use a specific PA year to update LULC or use all years")] = False,
     auto_confirm: Annotated[bool, typer.Option("--force", "-f", help="Auto confirm all prompts")] = False,
-    skip_fetch: Annotated[bool, typer.Option("--skip-fetch", "-s", help="Skip fetching protected areas for existing country PA geojson")] = False,
+    skip_fetch: Annotated[bool, typer.Option("--skip-fetch", "-s", help="Skip fetching protected areas for existing country PA geojson (if data was already fetched from previous sessions)")] = False,
     delete_intermediate_files: Annotated[bool, typer.Option("--del-temp", "-dt", help="Delete intermediate GeoJSON & GPKG files")] = True,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
     record_time: Annotated[bool, typer.Option("--record-time", "-t", help="Record execution time")] = False,
@@ -143,7 +143,7 @@ def process_osm(
     ):
     """
     Check if config exists. Fetches and translates Open Street Map data.
-    Example usage: python main.py process-osm --config-dir ./config --api ohsome --skip-fetch --verbose --del-temp --record-time
+    Example usage: python main.py process-osm --config-dir ./config --api ohsome --verbose --del-temp --record-time
 
     Args:
         config_dir (str): Directory containing the configuration file.
@@ -222,6 +222,7 @@ def enrich_lulc(
 
     config_path = os.path.join(config_dir, "config.yaml")
     check_file_exists(config_path)
+    print(os.getcwd())
     try:
         lew = LULCEnrichmentWrapper(os.getcwd(),config_path,api_type,threads, verbose)
 
@@ -254,7 +255,7 @@ def recalc_impedance(
     config_dir: Annotated[str, typer.Option(..., help="Path to the configuration file")] = "./config",
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose mode")] = False,
     del_stressors: Annotated[bool, typer.Option("--del-stressors", "-s", help="Delete OSM stressors")] = False,
-    decline_type: Annotated[str, typer.Option("--decline-type", "-dt", help="Type of decline to use for impedance calculation. Use either exp_decline OR prop_decline")] = "exp_decline",
+    decline_type: Annotated[str, typer.Option("--decline-type", "-dt", help="Type of decline to use for impedance calculation. Use either 'exp_decline' OR 'prop_decline'")] = "exp_decline",
     lambda_decay: Annotated[int, typer.Option("--lambda-decay", "-ld", help="Lambda decay value for impedance calculation")] = 500,
     k_value: Annotated[int, typer.Option("--k-value", "-k", help="K-value for impedance calculation")] = 500,
     record_time: Annotated[bool, typer.Option("--record-time", "-t", help="Record execution time")] = True

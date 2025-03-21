@@ -41,6 +41,7 @@ class VectorTransform:
         files_to_validate = []
         for filename in self.file_list:
             file_path = os.path.join(self.directory, filename)
+            print(f"Checking the {file_path}...")
             if self.check_vector_crs(filename, crs) == False:
                 print("Transforming the vector dataset to the specified CRS.")
                 file_path = os.path.join(self.directory, filename)
@@ -101,6 +102,11 @@ class VectorTransform:
                 for feature in layer:
                     total_features += 1 # increment the number of total fearu
                     geometry = feature.GetGeometryRef()
+                    
+                    if geometry is None: # skip issue with 'Error: 'NoneType' object has no attribute 'IsValid'
+                        print(f"Warning: Feature ID {feature.GetFID()} in layer '{layer_name}' has no geometry.")
+                        continue
+                    
                     if not geometry.IsValid():
                         invalid_features += 1
                         
@@ -144,10 +150,20 @@ class VectorTransform:
 
         for feature in layer:
             geometry = feature.GetGeometryRef()
+            
+            if geometry is None: # skip issue with 'Error: 'NoneType' object has no attribute 'IsValid'
+                print(f"Warning: Feature ID {feature.GetFID()} in layer '{layer_name}' has no geometry.")
+                continue
+            
             if not geometry.IsValid():
                 feature_to_fix_count += 1 # increment the number of features to be fixed
                 # attempt to fix the geometry
                 fixed_geometry = geometry.MakeValid()
+                
+                if geometry is None: # skip issue with 'Error: 'NoneType' object has no attribute 'IsValid'
+                    print(f"Warning: Feature ID {feature.GetFID()} in layer '{layer_name}' has no geometry.")
+                    continue
+                
 
                 if fixed_geometry.IsValid():
                     # replace the geometry with the fixed one

@@ -101,7 +101,8 @@ class LULCEnrichmentWrapper():
         # self.rasters_temp: /data/data/output/waterbodies_2017.tif /data/data/output/waterways_2017.tif /data/data/output/roads_2017.vrt /data/data/output/railways_2017.tif
 
         # overwrite rasters over input dataset in the following order: waterbodies, waterways, roads, railways
-        output_data, output_ds, nodata_value = self.overwrite_raster(self.lulc_filepaths[year], *self.rasters_temp)
+        # NOTE: HARDCODED NODATA VALUE as output LULC contains only positive integer values, so 0 is the best choice
+        output_data, output_ds, nodata_value = self.overwrite_raster(self.lulc_filepaths[year], *self.rasters_temp, nodata_value=0)
         print(f"FOR WRITING UPDATED LULC RASTER: {output_data, output_ds, nodata_value}")
         self.write_raster(output_data, output_ds, lulc_upd, nodata_value, cog_compress)
         # TODO - output dataset is not being assigned correctly nodatavalue - it is byte, but inherits 0 as nodatavalue from OSM stressors and -9999 from LULC stressors
@@ -405,8 +406,8 @@ class LULCEnrichmentWrapper():
 
         # mask out data outside the extent of the input raster
         for year in self.years:
-            ''' DEBUG
-            print(f"FOR MASKING: {output_path, self.lulc_filepaths[year], nodata_value}")'''
+            # DEBUG
+            print(f"FOR MASKING: {output_path, self.lulc_filepaths[year], nodata_value}")
             self.mask_raster_with_raster(output_path, self.lulc_filepaths[year], nodata_value)
         
         # compress output 
@@ -475,18 +476,19 @@ class LULCEnrichmentWrapper():
         out_ds = None
 
     # function to overwrite values from input raster by multiple rasters
-    def overwrite_raster(self, base_raster:str, *rasters:str):
+    def overwrite_raster(self, base_raster:str, *rasters:str, nodata_value: int):
         """
         Merge multiple rasters by overwriting values from the base raster with valid data from other rasters.
 
         Args:
             base_raster (str): path to the base raster dataset
             *rasters (str): paths to other raster datasets to be merged
+            nodata_value (int): no data value to be applied for the output raster
         
         Returns:
             np.array: merged raster dataset
             gdal.Dataset: dataset of the base raster
-            float: nodata value of the base raster
+            int: nodata value of the output raster
         """
         # open the input raster and read it
         base_ds = gdal.Open(base_raster)
@@ -494,7 +496,6 @@ class LULCEnrichmentWrapper():
         base_data = base_band.ReadAsArray().astype(np.float32)
         
         # get nodata value for the input raster
-        nodata_value = base_band.GetNoDataValue()
         if nodata_value is None:  # if nodata value is not defined, set 0 as a default
             nodata_value = 0
         base_data[base_data == nodata_value] = np.nan  # replace nodata value with nan for processing

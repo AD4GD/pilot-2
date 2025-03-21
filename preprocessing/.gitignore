@@ -34,6 +34,9 @@ src/data/input/*/osm_data/
 src/data/input/*/protected_areas/
 src/data/output/
 
+# temporary configuration - created in 3d component
+src/config/stressors.yaml
+
 # old visualisation
 visualisation/workflow_outdated_1.png
 
@@ -52,7 +55,13 @@ correlation'.py
 analysis.py
 nominatim_api.py
 
-
+# ignore all outputs
+src/data/*/output/
+# OSM inputs
+src/data/shared/input/osm_data/
+src/data/*/input/vector/
+# WDPA inputs
+src/data/shared/input/protected_areas/
 
 # ancillary and intermediate outputs in the nested directory
 1_protected_areas/output.txt

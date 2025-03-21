@@ -32,9 +32,10 @@ class LULCImpedanceProcessor(ImpedanceConfigurationHandler):
         super().__init__(config, config_impedance, params_placeholder, impedance_stressors, year,current_dir,output_dir)
         # additional directories
         self.lulc_dir = self.config.get('lulc_dir')
-        self.subcase_study = self.config['subcase_study'] + "_" if self.config.get('subcase_study', None) else ""
-        self.impedance_dir = os.path.join(self.current_dir,self.config["case_study_dir"], self.subcase_study + self.config['impedance_dir'])
-    
+        if self.config["subcase_study"]:
+            self.impedance_dir = os.path.join(current_dir, self.config["case_study_dir"], self.config['impedance_dir'].split('/')[0], self.config["subcase_study"] + "_" + self.config['impedance_dir'].split('/')[-1])
+        else:
+            self.impedance_dir = os.path.join(current_dir, self.config["case_study_dir"], self.config['impedance_dir'])
   
     def update_impedance_config(self):
         """

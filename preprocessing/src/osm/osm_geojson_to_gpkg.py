@@ -106,7 +106,6 @@ class OSMGeojsonToGpkg():
                 '-nln', layer_name # specify name of the layer
                 ], check=True, capture_output=True, text=True) # to show log
         print(f"Initialized merged GeoPackage with CRS EPSG:{self.target_epsg} from {layer_name}.")
-        print(2)
         for gpkg_file in self.gpkg_files[1:]:  # skip the first file because it's already added
             layer_name = gpkg_file.split(f"_{self.api_type}")[0]
             gpkg_file = os.path.join(self.gpkg_dir, gpkg_file)

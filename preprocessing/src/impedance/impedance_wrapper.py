@@ -58,8 +58,10 @@ class ImpedanceWrapper():
         self.case_study_dir = os.path.join(self.current_dir, self.config.get('case_study_dir')) # get the case study directory
         self.output_dir = os.path.join(self.case_study_dir, "output") # get the output directory
         self.stressor_dir = os.path.join(self.output_dir, "stressors") # get the directory for stressors
-        self.subcase_study = self.config['subcase_study'] + "_" if self.config.get('subcase_study', None) else ""
-        self.impedance_dir = os.path.join(self.case_study_dir, self.config["case_study_dir"], self.subcase_study + self.config['impedance_dir'])
+        if self.config["subcase_study"]:
+            self.impedance_dir = os.path.join(self.current_dir, self.config["case_study_dir"], self.config['impedance_dir'].split('/')[0], self.config["subcase_study"] + "_" + self.config['impedance_dir'].split('/')[-1])
+        else:
+            self.impedance_dir = os.path.join(self.current_dir, self.config["case_study_dir"], self.config['impedance_dir'])
 
         # make a dir for impedance results
         self.impedance_res_dir = os.path.join(self.stressor_dir, 'impedance_results')
