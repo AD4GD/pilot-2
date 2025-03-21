@@ -2,21 +2,21 @@
 
 Data4Land tool is developed to enrich various land-use/land-cover (LULC) spatial data with data from another sources to increase the consistency and reliability of LULC datasets for multiple purposes. This software currently includes four independent components which can be run in command-line interface (CLI):
 
-1. **[Access to historical data from the World Database on Protected Areas (WDPA) and data harmonization](protected_areas/)**
+1. **[Access to historical data from the World Database on Protected Areas (WDPA) and data harmonization](src/protected_areas/)**
 Available only through the authorised credentials (token), as it uses the special API. Jupyter Notebook format with detailed documentation is available [here](src/1_pas.ipynb).
-2. **[Access and harmonisation of historical LULC data in vector - Open Street Map (OSM) data ](osm/)**
+2. **[Access and harmonisation of historical LULC data in vector - Open Street Map (OSM) data ](src/osm/)**
 Freely available without authorised credentials, uses open-access API. Jupyter Notebook is available [here](src/2_vector.ipynb).
-3. **[Enrichment of LULC data](enrichment/)**
+3. **[Enrichment of LULC data](src/enrichment/)**
 Enhancing of initial LULC data with supplementary data from 1st and 2nd blocks, or user-defined data. Jupyter Notebook is available [here](src/3_enrichment.ipynb).
-4. **[Impedance calculation ('edge effect' of biodiversity stressors)](impedance/)**
+4. **[Impedance calculation ('edge effect' of biodiversity stressors)](src/impedance/)**
 Calculates 'landscape impedance' datasets based on user-defined biodiversity stressors. This component is useful for researchers to conduct follow-up studies on nature conservation and habitat connectivity. Jupyter Notebook is available [here](src/4_impedance.ipynb).
 
 Detailed documentation on each nested component is given at the beginnings of corresponding Jupyter Notebooks and includes descriptions of all input and output datasets valid for v 1.0.0.
 
-Sample input datasets are different for v1.0.0 and v2.0.0.
-**v1.0.0**
-Sample dataset is from [ESA Sentinel-2 World Cover](https://collections.sentinel-hub.com/impact-observatory-lulc-map/) remote sensing collections, covering a part of Northern England, located [here](src/data/input/).
-**v2.0.0**
+Sample input datasets are different for v1.0.0 and v2.0.0.  
+**v1.0.0**  
+Sample dataset is from [ESA Sentinel-2 World Cover](https://collections.sentinel-hub.com/impact-observatory-lulc-map/) remote sensing collections, covering a part of Northern England.  
+**v2.0.0**  
 - From the [land-use/land-cover map of Catalonia (MCSC)](https://www.opengis.grumets.cat/MCSC) with 7 LULC types, covering the whole of Catalonia, located [here](src/data/cat_aggr_buf_30m).
 - The subdataset of MCSC Catalonia, covering only the small north-eastern part, but including 24 LULC types, located [here](src/data/case_study_albera).
 As input LULC datasets can be potentially used across multiple sub case studies, they are located in the [shared](src/data/shared).
@@ -27,7 +27,7 @@ The v.2.0.0 supports **case studies** and **sub case studies**. For example, use
 
 Also, there might be the same LULC datasets for one case study area, for example, covering Catalonia in 2012-2022, but user would like to execute them with different landscape impedance (or resistance) parameter. In this case they must provide the series of landscape impedance datasets for each **sub case study** and define it in the configuration file, for example, `subcase_study: 'forest'` or `subcase_study: 'meadows'` to calculate outputs for different LULC types. User is free to define sub case studies for other objects, aside from LULC types, for example, for species: `subcase_study: 'turtle'`. However, it is crucial to provide the relevant landscape impedance datasets for each sub case study, putting them to the following path: `src/data/**case_study**/input/**subcase_study**_impedance/`. See the example of configured path [here](src/data/cat_aggr_buf_30m/input/forest_impedance/).
 
-Data flow within the Data4Land tool can be also explored on the overarching diagram:![diagram](visualisation/cli_workflow.png).
+Data flow within the Data4Land tool can be also explored on the overarching diagram:![diagram](visualisation/workflow.png).
 
 ### Usage and command references
 
@@ -51,9 +51,9 @@ recalc-impedance
 test
 ```
 
-***1. process-wdpa***
-**Description**: preprocess data on protected areas from the World Database on Protected Areas (WDPA) for each year of LULC data.
-**Example usage**:
+***1. process-wdpa***  
+**Description**: preprocess data on protected areas from the World Database on Protected Areas (WDPA) for each year of LULC data.  
+**Example usage**:  
 ```bash
  python main.py process-wdpa --config-dir ./config --force --skip-fetch --del-temp --verbose --record-time
 ```
@@ -66,9 +66,9 @@ test
 - verbose (bool): Verbose mode. Enable, if you wish to see explicitly all the steps in processing. Aliases: "--verbose", "-v".
 - record_time (bool): Record the execution time. Aliases: "--record-time", "-t".
 
-***2. process-osm***
-**Description**: fetches and translates data from OpenStreetMap database.
-**Example usage**: 
+***2. process-osm***  
+**Description**: fetches and translates data from OpenStreetMap database.  
+**Example usage**:  
 ```bash
 python main.py process-osm --config-dir ./config --api ohsome --verbose --skip-fetch --del-temp --record-time
 ```
@@ -80,9 +80,9 @@ python main.py process-osm --config-dir ./config --api ohsome --verbose --skip-f
 - verbose (bool): Verbose mode. Enable, if you wish to see explicitly all the steps in processing. Aliases: "--verbose", "-v".
 - record_time (bool): Record the execution time. Aliases: "--record-time", "-t".
 
-***3. enrich-lulc***
-**Description**: processes and merges fetched OpenStreetMap data into output LULC dataset. 
-**Example usage**:
+***3. enrich-lulc***  
+**Description**: processes and merges fetched OpenStreetMap data into output LULC dataset.  
+**Example usage**:  
 ```bash
 python main.py enrich-lulc --config-dir ./config --verbose --save-osm-stressors
 ```
@@ -94,9 +94,9 @@ python main.py enrich-lulc --config-dir ./config --verbose --save-osm-stressors
 - save_osm_stressors (bool): Save OSM stressors to file. Aliases: "--save-osm-stressors", "-s".
 - record_time (bool): Record the execution time. Aliases: "--record-time", "-t".
 
-***4. recalc-impedance***
-**Description**: recalculates landscape impedance data for follow-up computations.
-**Example usage**:
+***4. recalc-impedance***  
+**Description**: recalculates landscape impedance data for follow-up computations.  
+**Example usage**:  
 ```bash
 python main.py recalc-impedance --config-dir ./config --verbose --del-stressors
 ```
